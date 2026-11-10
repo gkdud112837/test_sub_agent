@@ -5,3 +5,6 @@
 board/runs/
 board/status.json
 board/status.js
+
+# 파이썬 캐시
+__pycache__/
