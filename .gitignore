@@ -1,0 +1,7 @@
+# Claude Code 훅 로그 (프롬프트 · 파일 내용 포함)
+.claude/logs/
+
+# 관제 서버 실행 기록 · 생성 상태 파일
+board/runs/
+board/status.json
+board/status.js

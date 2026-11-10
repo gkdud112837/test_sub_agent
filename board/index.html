@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VOC 관제 모니터</title>
+<style>
+:root{
+  --bg:#f4f4f1;--panel:#ffffff;--fg:#1d1d1f;--mute:#6e6e73;--line:#e3e2dc;
+  --pass:#2b8a3e;--pass-bg:#e6f4ea;--fail:#c92a2a;--fail-bg:#fdecec;--wait:#b7791f;--wait-bg:#fff4dc;
+  --info:#1c64b4;--bar:#d9d8d2;
+  --P1:#d9480f;--P2:#1971c2;--P3:#2f9e44;--H1:#7c7f86;--H2:#a0a3a9;--NA:#c3c5c9;--RV:#e8590c;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141416;--panel:#1e1e21;--fg:#ececec;--mute:#9b9ba1;--line:#2f2f33;
+  --pass:#51cf66;--pass-bg:#1b3022;--fail:#ff6b6b;--fail-bg:#3a1d1d;--wait:#fcc419;--wait-bg:#3a3117;--info:#74c0fc;--bar:#34343a;
+  --NA:#5c5f66;--H2:#80848c}}
+:root[data-theme="dark"]{
+  --bg:#141416;--panel:#1e1e21;--fg:#ececec;--mute:#9b9ba1;--line:#2f2f33;
+  --pass:#51cf66;--pass-bg:#1b3022;--fail:#ff6b6b;--fail-bg:#3a1d1d;--wait:#fcc419;--wait-bg:#3a3117;--info:#74c0fc;--bar:#34343a;
+  --NA:#5c5f66;--H2:#80848c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 -apple-system,"Malgun Gothic","Apple SD Gothic Neo",sans-serif}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+h1{font-size:18px;margin:0;margin-right:auto}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 12px;border-radius:999px;font-weight:700;font-size:13px}
+.PASS{color:var(--pass);background:var(--pass-bg)}.FAIL{color:var(--fail);background:var(--fail-bg)}.WAIT{color:var(--wait);background:var(--wait-bg)}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+.live .dot{animation:blink 1.6s infinite}@keyframes blink{50%{opacity:.25}}
+.meta{color:var(--mute);font-size:12px}
+main{max-width:1280px;margin:0 auto;padding:16px;display:grid;gap:14px;grid-template-columns:repeat(12,1fr)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.card h2{font-size:13px;color:var(--mute);margin:0 0 10px;font-weight:600;letter-spacing:.02em}
+.c3{grid-column:span 3}.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}.c12{grid-column:span 12}
+@media (max-width:980px){.c3,.c4,.c5,.c6,.c7,.c8{grid-column:span 12}}
+.big{font-size:34px;font-weight:800;line-height:1.1}.big small{font-size:14px;color:var(--mute);font-weight:500;margin-left:4px}
+.kpi-sub{margin-top:4px}
+.meter{height:8px;background:var(--bar);border-radius:99px;overflow:hidden;margin-top:10px;position:relative}
+.meter i{display:block;height:100%;border-radius:99px}
+.meter b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--fg);opacity:.55}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--mute);font-weight:600}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.gate-no{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--bar);font-size:12px;font-weight:700}
+.chan{display:grid;grid-template-columns:110px 1fr 46px 46px;gap:8px;align-items:center;margin:8px 0}
+.chan .bars{display:grid;gap:4px}
+.chan .lbl{font-weight:600}
+.chan .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mute);margin-top:6px}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.stack{display:flex;height:22px;border-radius:6px;overflow:hidden;background:var(--bar)}
+.stack i{height:100%}
+.tagrow{display:grid;grid-template-columns:60px 1fr 40px;gap:8px;align-items:center;margin:5px 0;font-size:13px}
+.alert{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+.alert:last-child{border-bottom:0}
+.lv{font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px;height:fit-content}
+.lv.error{color:var(--fail);background:var(--fail-bg)}.lv.warn{color:var(--wait);background:var(--wait-bg)}.lv.info{color:var(--info);background:var(--bar)}
+.feed{max-height:420px;overflow:auto}
+.feed td{font-size:12.5px}
+.ev{font-weight:600;white-space:nowrap}
+.tag-ag{font-size:11px;color:var(--info);border:1px solid var(--info);border-radius:4px;padding:0 4px;margin-left:4px}
+.empty{color:var(--mute);font-size:13px;padding:6px 0}
+.toolbar{display:flex;gap:8px;align-items:center}
+button{font:inherit;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:3px 10px;cursor:pointer}
+code{font-family:Consolas,monospace;font-size:12px;background:var(--bar);padding:1px 5px;border-radius:4px}
+/* ── 진행 중 단계: 형광색 깜빡임 ── */
+:root{--neon:#39ff14;--neon-ink:#0b1a00;--neon-soft:rgba(57,255,20,.16)}
+@keyframes neon-blink{
+  0%,100%{opacity:1;box-shadow:0 0 4px var(--neon),0 0 12px var(--neon),0 0 24px var(--neon)}
+  50%{opacity:.2;box-shadow:none}}
+@keyframes neon-row{0%,100%{background:var(--neon-soft)}50%{background:transparent}}
+tr.active td{animation:neon-row .9s ease-in-out infinite}
+tr.active td:first-child{box-shadow:inset 4px 0 0 var(--neon)}
+tr.active .gate-no{background:var(--neon);color:var(--neon-ink);animation:neon-blink .9s ease-in-out infinite}
+.neon{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-weight:800;font-size:12px;
+  background:var(--neon);color:var(--neon-ink);animation:neon-blink .9s ease-in-out infinite;white-space:nowrap}
+.why{font-size:11.5px;color:var(--mute);margin-top:3px}
+#working[hidden]{display:none}
+/* ── 실행 · 중지 버튼 ── */
+button.act{font-weight:800;padding:6px 16px;border-radius:9px;border:0;color:#fff}
+button.act.run{background:#2b8a3e}button.act.stop{background:#c92a2a}
+button.act:disabled{opacity:.35;cursor:not-allowed}
+button.act.run.busy{background:var(--neon);color:var(--neon-ink);animation:neon-blink .9s ease-in-out infinite}
+.agent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.agent-box{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.agent-box.running{border-color:var(--neon);box-shadow:0 0 0 1px var(--neon) inset}
+.agent-box .st{font-size:12px;font-weight:700}
+.st.running{color:var(--pass)}.st.done{color:var(--pass)}.st.error,.st.stopped{color:var(--fail)}
+.runlog{font-family:Consolas,monospace;font-size:12px;background:var(--bar);border-radius:8px;padding:8px 10px;max-height:180px;overflow:auto;white-space:pre-wrap;margin-top:10px}
+@media (prefers-reduced-motion:reduce){
+  tr.active td,tr.active .gate-no,.neon{animation:none}
+  tr.active td{background:var(--neon-soft)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>VOC 분류 관제 모니터</h1>
+  <span id="overall" class="pill WAIT"><span class="dot"></span><span>대기</span></span>
+  <span id="working" class="neon" hidden>● 진행 중</span>
+  <span id="live" class="pill PASS live"><span class="dot"></span><span>LIVE</span></span>
+  <span class="meta" id="updated">—</span>
+  <div class="toolbar">
+    <label class="meta"><input type="checkbox" id="auto" checked> 자동 새로고침 2초</label>
+    <button id="theme" title="테마 전환">◐</button>
+    <button id="btn-run" class="act run" title="review-tagger × 3 → review-grader 실행">▶ 실행</button>
+    <button id="btn-stop" class="act stop" title="실행 중인 에이전트를 모두 멈추고 백업으로 복원" disabled>■ 중지</button>
+  </div>
+</header>
+
+<main id="app">
+  <section class="card c12" id="nodata" hidden>
+    <h2>데이터 없음</h2>
+    <p>먼저 관제 프로그램을 실행하세요: <code>python -I -X utf8 board/control.py --watch 5</code></p>
+  </section>
+
+  <!-- 실행 파이프라인 -->
+  <section class="card c12" id="pipe-card"><h2>에이전트 실행 <span class="meta" id="pipe-phase"></span></h2>
+    <div class="agent-grid" id="pipe-agents"></div>
+    <div class="runlog" id="pipe-log">실행 버튼을 누르면 review-tagger(묶음 1·2·3) → review-grader 순서로 실행됩니다.</div>
+  </section>
+
+  <!-- KPI -->
+  <section class="card c3"><h2>처리 행</h2><div class="big" id="k-total">—</div><div class="meter"><i id="k-total-bar"></i></div><div class="meta kpi-sub" id="k-total-sub"></div></section>
+  <section class="card c3"><h2>검토 숫자</h2><div class="big" id="k-review">—</div><div class="meter"><i id="k-review-bar"></i><b id="k-review-lim"></b></div><div class="meta kpi-sub" id="k-review-sub"></div></section>
+  <section class="card c3"><h2>게이트 통과</h2><div class="big" id="k-gates">—</div><div class="meter"><i id="k-gates-bar"></i></div><div class="meta kpi-sub" id="k-gates-sub"></div></section>
+  <section class="card c3"><h2>훅 이벤트</h2><div class="big" id="k-events">—</div><div class="meta kpi-sub" id="k-events-sub"></div></section>
+
+  <!-- 게이트 -->
+  <section class="card c7"><h2>품질 게이트 1–7</h2>
+    <table><thead><tr><th></th><th>단계</th><th>현재 값</th><th>기준</th><th>확인 주체</th><th>결과</th></tr></thead><tbody id="gates"></tbody></table>
+  </section>
+
+  <!-- 채점 채널 -->
+  <section class="card c5"><h2>채점 채널 · 합격선 <span id="minline"></span></h2>
+    <div id="channels"></div>
+    <div class="legend"><span style="--c:var(--info)">기계 점검 (control.py)</span><span style="--c:var(--pass)">채점관 (review-grader)</span></div>
+    <div class="meta" id="grader-title" style="margin-top:8px"></div>
+  </section>
+
+  <!-- 태그 분포 -->
+  <section class="card c5"><h2>태그 분포 (전체)</h2><div id="tags"></div></section>
+
+  <!-- 묶음별 -->
+  <section class="card c7"><h2>묶음별 현황</h2>
+    <table><thead><tr><th>part</th><th class="num">행</th><th class="num">① 범위</th><th class="num">② 근거</th><th class="num">③ 상식</th><th class="num">검토</th><th style="width:38%">분포</th></tr></thead><tbody id="parts"></tbody></table>
+    <div class="legend" id="tag-legend"></div>
+  </section>
+
+  <!-- 알림 · 검토 목록 -->
+  <section class="card c6"><h2>알림</h2><div id="alerts"></div></section>
+  <section class="card c6"><h2>검토 행 · 이유</h2><div id="reviews"></div></section>
+
+  <!-- 이벤트 -->
+  <section class="card c8"><h2>실시간 이벤트 (events.jsonl)</h2>
+    <div class="feed"><table><thead><tr><th>시각</th><th>이벤트</th><th>도구</th><th>내용</th></tr></thead><tbody id="feed"></tbody></table></div>
+  </section>
+  <section class="card c4"><h2>에이전트 · 관제 기록</h2><div id="agents"></div><div id="special" style="margin-top:12px"></div></section>
+</main>
+
+<script>
+const TAGCOLOR={P1:"var(--P1)",P2:"var(--P2)",P3:"var(--P3)",H1:"var(--H1)",H2:"var(--H2)","해당없음":"var(--NA)","검토":"var(--RV)"};
+const STATE_KO={PASS:"통과",FAIL:"실패",WAIT:"대기"};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hhmmss=ts=>ts?new Date(ts*1000).toLocaleTimeString("ko-KR",{hour12:false}):"—";
+const ago=ts=>{if(!ts)return"—";const s=Math.max(0,Math.round(Date.now()/1000-ts));return s<60?s+"초 전":s<3600?Math.floor(s/60)+"분 전":Math.floor(s/3600)+"시간 전"};
+const pill=st=>`<span class="pill ${st}"><span class="dot"></span>${STATE_KO[st]||st}</span>`;
+const scoreColor=v=>v==null?"var(--bar)":v>=89?"var(--pass)":"var(--fail)";
+
+function render(S){
+  if(!S){$("nodata").hidden=false;return}
+  $("nodata").hidden=true;
+  const s=S.summary, min=S.channels.min;
+  // header
+  $("overall").className="pill "+s.overall;
+  $("overall").innerHTML=`<span class="dot"></span>종합 ${STATE_KO[s.overall]}`;
+  const age=Date.now()/1000-S.generated_ts, live=age<30;
+  $("live").className="pill live "+(live?"PASS":"WAIT");
+  $("live").innerHTML=`<span class="dot"></span>${live?"LIVE":"정지"}`;
+  $("updated").textContent=`점검 ${hhmmss(S.generated_ts)} (${ago(S.generated_ts)})`;
+
+  // KPI
+  $("k-total").innerHTML=`${s.total}<small>/ ${s.expected}</small>`;
+  $("k-total-bar").style.cssText=`width:${100*s.total/Math.max(s.expected,1)}%;background:var(--info)`;
+  $("k-total-sub").textContent=`part ${S.parts.length}개 · 허용 태그 ${S.allowed_tags.length}개`;
+  const rr=s.review_ratio*100, rOk=rr<=5&&s.review_reason_missing===0;
+  $("k-review").innerHTML=`${s.review}<small>건 · ${rr.toFixed(1)}%</small>`;
+  $("k-review-bar").style.cssText=`width:${Math.min(100,rr*10)}%;background:${rOk?"var(--pass)":"var(--fail)"}`;
+  $("k-review-lim").style.left="50%";
+  $("k-review-sub").innerHTML=`한도 5% (눈금) · 이유 누락 ${s.review_reason_missing}건 · ${rOk?"통과":"초과"}`;
+  $("k-gates").innerHTML=`${s.gates_passed}<small>/ ${s.gates_total}</small>`;
+  $("k-gates-bar").style.cssText=`width:${100*s.gates_passed/s.gates_total}%;background:${s.overall==="FAIL"?"var(--fail)":"var(--pass)"}`;
+  $("k-gates-sub").textContent=S.gates.filter(g=>g.state!=="PASS").map(g=>`${g.no}.${g.name} ${STATE_KO[g.state]}`).join(" · ")||"전 단계 통과";
+  const E=S.events||{};
+  $("k-events").innerHTML=E.exists?`${E.total}<small>건</small>`:"—";
+  $("k-events-sub").textContent=E.exists?`마지막 ${ago(E.last_ts)} · `+Object.entries(E.by_type).slice(0,3).map(([k,v])=>`${k} ${v}`).join(" · "):"events.jsonl 없음";
+
+  // gates
+  $("gates").innerHTML=S.gates.map(g=>{
+    const a=g.active;
+    return `<tr class="${a?"active":""}"><td><span class="gate-no">${g.no}</span></td><td><b>${esc(g.name)}</b>${a?`<div class="why">${esc(a.why)} · ${ago(a.since)}</div>`:""}</td><td>${esc(g.value)}</td><td class="meta">${esc(g.rule)}</td><td class="meta">${esc(g.who)}</td><td>${a?`<span class="neon">진행 중</span>`:pill(g.state)}</td></tr>`}).join("");
+  const act=S.gates.filter(g=>g.active);
+  $("working").hidden=!act.length;
+  $("working").textContent="● 진행 중: "+act.map(g=>`${g.no}.${g.name}`).join(" · ");
+
+  // channels
+  $("minline").textContent=`(각 ≥ ${min})`;
+  const names={range:"① 범위 점수",evidence:"② 근거 판정",sense:"③ 상식 점수"};
+  $("channels").innerHTML=Object.keys(names).map(k=>{
+    const m=S.channels.machine[k], g=(S.channels.grader||{})[k];
+    const bar=(v,c)=>`<div class="meter" style="margin:0"><i style="width:${v??0}%;background:${c}"></i><b style="left:${min}%"></b></div>`;
+    return `<div class="chan"><span class="lbl">${names[k]}</span><div class="bars">${bar(m,"var(--info)")}${bar(g,"var(--pass)")}</div>
+      <span class="v" style="color:${scoreColor(m)}">${m??"—"}</span><span class="v" style="color:${scoreColor(g)}">${g??"—"}</span></div>`}).join("")
+    +`<div class="chan meta"><span></span><span>세로 눈금 = 합격선 ${min}</span><span class="v">기계</span><span class="v">채점관</span></div>`;
+  $("grader-title").textContent=S.channels.grader_title?"채점관 출처: "+S.channels.grader_title:"scorecard.md 없음 — review-grader 실행 필요";
+
+  // tags
+  const tmax=Math.max(1,...Object.values(s.tags));
+  $("tags").innerHTML=S.allowed_tags.map(t=>{const v=s.tags[t]||0;return `<div class="tagrow"><span><b>${esc(t)}</b></span><div class="meter" style="margin:0;height:12px"><i style="width:${100*v/tmax}%;background:${TAGCOLOR[t]||"var(--info)"}"></i></div><span class="num" style="text-align:right">${v}</span></div>`}).join("");
+
+  // parts
+  $("parts").innerHTML=S.parts.map(p=>{
+    const tot=Object.values(p.tags).reduce((a,b)=>a+b,0)||1;
+    const stack=S.allowed_tags.map(t=>p.tags[t]?`<i title="${esc(t)} ${p.tags[t]}" style="width:${100*p.tags[t]/tot}%;background:${TAGCOLOR[t]}"></i>`:"").join("");
+    const sc=v=>`<td class="num" style="color:${scoreColor(v)};font-weight:700">${v}</td>`;
+    return `<tr><td><b>${esc(p.part)}</b><div class="meta">수정 ${hhmmss(p.mtime)}</div></td><td class="num">${p.rows}/${p.expected}</td>${sc(p.scores.range)}${sc(p.scores.evidence)}${sc(p.scores.sense)}<td class="num">${p.review.length}</td><td><div class="stack">${stack}</div></td></tr>`}).join("")
+    ||`<tr><td colspan="7" class="empty">part 파일 없음</td></tr>`;
+  $("tag-legend").innerHTML=S.allowed_tags.map(t=>`<span style="--c:${TAGCOLOR[t]}">${esc(t)}</span>`).join("");
+
+  // alerts
+  $("alerts").innerHTML=S.alerts.length?S.alerts.map(a=>`<div class="alert"><span class="lv ${a.level}">${a.level.toUpperCase()}</span><span><b>${esc(a.where)}</b> ${a.voc_id!=="-"?`<code>${esc(a.voc_id)}</code> `:""}${esc(a.msg)}</span></div>`).join(""):`<div class="empty">알림 없음</div>`;
+
+  // reviews
+  const rv=S.parts.flatMap(p=>p.review.map(r=>({...r,part:p.part})));
+  $("reviews").innerHTML=rv.length?`<table><tbody>${rv.map(r=>`<tr><td><code>${esc(r.voc_id)}</code></td><td class="meta">${esc(r.part)}</td><td>${esc(r.note)||'<span style="color:var(--fail)">이유 누락</span>'}</td></tr>`).join("")}</tbody></table>`:`<div class="empty">검토 행 없음</div>`;
+
+  // feed
+  $("feed").innerHTML=E.exists?E.recent.map(e=>`<tr><td class="meta">${hhmmss(e.ts)}</td><td class="ev">${esc(e.event)}${e.agent?'<span class="tag-ag">sub</span>':""}</td><td>${esc(e.tool)}</td><td>${esc(e.what)}</td></tr>`).join(""):`<tr><td colspan="4" class="empty">events.jsonl 없음</td></tr>`;
+
+  // agents + special
+  $("agents").innerHTML=E.exists&&E.agents.length?`<table><thead><tr><th>서브에이전트</th><th class="num">도구 호출</th><th>마지막</th></tr></thead><tbody>${E.agents.map(a=>`<tr><td><code>${esc(a.id)}</code> <span class="meta">${esc(a.type)}</span></td><td class="num">${a.calls}</td><td class="meta">${ago(a.last)}</td></tr>`).join("")}</tbody></table>`:`<div class="empty">서브에이전트 기록 없음</div>`;
+  $("special").innerHTML=E.exists&&E.special.length?`<h2>GraderResult · ControlCheck</h2>`+E.special.slice().reverse().map(e=>`<div class="alert"><span class="lv info">${esc(e.hook_event_name)}</span><span><span class="meta">${hhmmss(e.ts)}</span> ${esc(e.task||("종합 "+(e.overall||"")+" · 검토 "+(e.review??"")))}${e.allowed_tag_count!=null?` → <b>${e.allowed_tag_count}개</b>`:""}</span></div>`).join(""):"";
+}
+
+// ── 실행 · 중지 ──
+const SERVER=location.protocol.startsWith("http");
+const AGENT_ORDER=["tagger-1","tagger-2","tagger-3","grader"];
+const AGENT_LABEL={"tagger-1":"review-tagger · 묶음 1","tagger-2":"review-tagger · 묶음 2","tagger-3":"review-tagger · 묶음 3","grader":"review-grader · 채점"};
+const ST_KO={running:"실행 중",done:"완료",error:"오류",stopped:"중지됨",waiting:"대기"};
+function renderPipe(P){
+  const running=P&&P.status==="running";
+  $("btn-run").disabled=!SERVER||running;
+  $("btn-stop").disabled=!SERVER||!running;
+  $("btn-run").classList.toggle("busy",running);
+  $("btn-run").textContent=running?"● 실행 중":"▶ 실행";
+  if(!SERVER){$("pipe-phase").textContent="— 버튼을 쓰려면 server.py 로 여세요";return}
+  if(!P)return;
+  $("pipe-phase").textContent=`· ${P.message||""}${P.phase?" · "+P.phase:""}${P.started?" · 시작 "+hhmmss(P.started):""}${P.ended?" · 종료 "+hhmmss(P.ended):""}`;
+  const A=P.agents||{};
+  $("pipe-agents").innerHTML=AGENT_ORDER.map(k=>{const a=A[k]||{status:"waiting"};
+    const dur=a.started?Math.round(((a.ended||Date.now()/1000)-a.started))+"초":"";
+    return `<div class="agent-box ${a.status}"><b>${AGENT_LABEL[k]}</b><div class="st ${a.status}">${a.status==="running"?'<span class="neon">실행 중</span>':ST_KO[a.status]||a.status} ${dur}</div><div class="why">${esc(a.result||"")}</div></div>`}).join("");
+  if(P.log&&P.log.length){const el=$("pipe-log");const atBottom=el.scrollHeight-el.scrollTop-el.clientHeight<20;el.textContent=P.log.join("\n");if(atBottom)el.scrollTop=el.scrollHeight}
+}
+async function call(path){
+  if(!SERVER){alert("실행·중지 버튼은 관제 서버에서만 동작합니다.\n\npython -I -X utf8 board/server.py\n\n로 실행한 뒤 http://127.0.0.1:8765 를 여세요.");return}
+  try{const r=await fetch(path,{method:"POST"});const j=await r.json();renderPipe(j.state);if(!j.ok)alert(j.msg)}catch(e){alert("서버 연결 실패: "+e)}
+}
+$("btn-run").onclick=()=>{if(confirm("에이전트를 실행할까요?\n\n· 현재 part_1~3.csv · scorecard.md 를 백업한 뒤\n· review-tagger 3개가 300건을 다시 분류하고\n· review-grader 가 채점합니다.\n\n몇 분 걸리고 API 사용량이 듭니다. 중지하면 백업으로 되돌립니다."))call("/api/run")};
+$("btn-stop").onclick=()=>{if(confirm("실행 중인 에이전트를 모두 멈추고 백업으로 되돌릴까요?"))call("/api/stop")};
+renderPipe(null);
+
+// status.js 를 주기적으로 다시 불러온다 (file:// 에서도 동작)
+function load(){
+  const old=document.getElementById("status-src"); if(old) old.remove();
+  const sc=document.createElement("script");
+  sc.id="status-src"; sc.src="status.js?t="+Date.now();
+  sc.onload=()=>{render(window.STATUS);renderPipe(window.STATUS&&window.STATUS.pipeline)};
+  sc.onerror=()=>render(null);
+  document.body.appendChild(sc);
+}
+let timer=setInterval(()=>{if($("auto").checked)load()},2000);
+load();
+
+// 테마 전환 (시스템 → 라이트 → 다크)
+const modes=["","light","dark"];let mi=0;
+try{const saved=localStorage.getItem("board-theme");if(saved!=null){mi=modes.indexOf(saved);if(mi<0)mi=0}}catch(e){}
+const applyTheme=()=>{modes[mi]?document.documentElement.setAttribute("data-theme",modes[mi]):document.documentElement.removeAttribute("data-theme")};
+applyTheme();
+$("theme").onclick=()=>{mi=(mi+1)%modes.length;applyTheme();try{localStorage.setItem("board-theme",modes[mi])}catch(e){}};
+</script>
+</body>
+</html>

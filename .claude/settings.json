@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(ls:*)",
+      "Bash(wc:*)",
+      "Bash(head:*)",
+      "Bash(cat:*)",
+      "Bash(pdftotext:*)",
+      "Edit(analysis/**)",
+      "Write(analysis/**)",
+      "Edit(output/**)",
+      "Write(output/**)",
+      "Edit(ax.md)"
+    ],
+    "deny": [
+      "Edit(archive-*/**)",
+      "Write(archive-*/**)",
+      "Edit(painpoint-*/**)",
+      "Write(painpoint-*/**)"
+    ]
+  },
+  "env": {
+    "VOC_PROJECT_ROOT": "C:/Users/admin/Desktop/pjt/1110test"
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      { "hooks": [{ "type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/log_event.py\"" }] }
+    ],
+    "PreToolUse": [
+      { "matcher": "*", "hooks": [{ "type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/log_event.py\"" }] }
+    ],
+    "PostToolUse": [
+      { "matcher": "*", "hooks": [{ "type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/log_event.py\"" }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/log_event.py\"" }] }
+    ]
+  }
+}
