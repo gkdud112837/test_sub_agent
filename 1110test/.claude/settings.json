@@ -24,7 +24,7 @@
     ]
   },
   "env": {
-    "VOC_PROJECT_ROOT": "C:/Users/admin/Desktop/pjt/1110test"
+    "VOC_PROJECT_ROOT": "C:/Users/admin/Desktop/pjt/test_sub_agent/1110test"
   },
   "hooks": {
     "UserPromptSubmit": [
