@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>오늘의 매대판</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  :root {
+    --bg: #f2f4f6;
+    --card: #ffffff;
+    --fill: #f2f4f6;
+    --fill-strong: #e5e8eb;
+    --text: #191f28;
+    --text-2: #4e5968;
+    --text-3: #8b95a1;
+    --text-4: #b0b8c1;
+    --blue: #3182f6;
+    --blue-soft: #e8f3ff;
+    --blue-press: #1b64da;
+    --green: #03b26c;
+    --green-soft: #e5f8ef;
+    --red: #f04452;
+    --red-soft: #ffeeee;
+    --dim: rgba(0, 0, 0, .44);
+    --sheet: #ffffff;
+    --toast: #333d4b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101013; --card: #1d1d22; --fill: #2c2c33; --fill-strong: #3a3a43;
+      --text: #f9fafb; --text-2: #c3c8cf; --text-3: #8b95a1; --text-4: #5f6670;
+      --blue: #4c97ff; --blue-soft: #1a2a42; --blue-press: #3182f6;
+      --green: #2fca8a; --green-soft: #13301f; --red: #ff6b75; --red-soft: #3a1a1d;
+      --dim: rgba(0, 0, 0, .6); --sheet: #232329; --toast: #3a3a43;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101013; --card: #1d1d22; --fill: #2c2c33; --fill-strong: #3a3a43;
+    --text: #f9fafb; --text-2: #c3c8cf; --text-3: #8b95a1; --text-4: #5f6670;
+    --blue: #4c97ff; --blue-soft: #1a2a42; --blue-press: #3182f6;
+    --green: #2fca8a; --green-soft: #13301f; --red: #ff6b75; --red-soft: #3a1a1d;
+    --dim: rgba(0, 0, 0, .6); --sheet: #232329; --toast: #3a3a43;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    letter-spacing: -0.01em; -webkit-font-smoothing: antialiased;
+  }
+  body.lock { overflow: hidden; }
+  button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; }
+  .app { max-width: 480px; margin: 0 auto; padding: 0 0 calc(40px + env(safe-area-inset-bottom)); }
+
+  /* top bar */
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 6px; }
+  .place { font-size: 15px; font-weight: 600; color: var(--text-2); }
+  .demo { font-size: 11px; font-weight: 600; color: var(--text-3); background: var(--fill-strong); padding: 4px 8px; border-radius: 6px; }
+
+  /* hero */
+  .hero { padding: 18px 20px 22px; }
+  .date { font-size: 14px; color: var(--text-3); font-weight: 500; }
+  .hero h1 { margin: 6px 0 0; font-size: 26px; line-height: 1.38; font-weight: 700; letter-spacing: -0.03em; }
+  .hero h1 em { font-style: normal; color: var(--blue); }
+
+  /* blocks */
+  .block { background: var(--card); border-radius: 22px; margin: 0 12px 12px; overflow: hidden; }
+  .pad { padding: 20px; }
+
+  .toggle-row { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 18px 20px; }
+  .ico { flex: none; width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; font-size: 22px; background: var(--fill); }
+  .toggle-row .t { flex: 1; min-width: 0; }
+  .toggle-row .t b { display: block; font-size: 17px; font-weight: 600; }
+  .toggle-row .t span { display: block; font-size: 14px; color: var(--text-3); margin-top: 2px; }
+  .sw { flex: none; width: 50px; height: 30px; border-radius: 15px; background: var(--fill-strong); position: relative; transition: background .22s ease; }
+  .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.16); transition: transform .22s cubic-bezier(.3,.7,.4,1); }
+  .toggle-row[aria-pressed="true"] .sw { background: var(--blue); }
+  .toggle-row[aria-pressed="true"] .sw::after { transform: translateX(20px); }
+
+  /* segmented */
+  .seg-wrap { padding: 0 12px 12px; }
+  .seg { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 0 8px; }
+  .seg::-webkit-scrollbar { display: none; }
+  .seg button { flex: none; height: 38px; padding: 0 16px; border-radius: 19px; font-size: 15px; font-weight: 600; color: var(--text-2); background: var(--card); transition: background .15s, color .15s, transform .1s; }
+  .seg button:active { transform: scale(.96); }
+  .seg button[aria-pressed="true"] { background: var(--text); color: var(--card); }
+
+  /* list */
+  .list-head { display: flex; justify-content: space-between; align-items: baseline; padding: 22px 20px 6px; }
+  .list-head h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+  .list-head span { font-size: 13px; color: var(--text-3); }
+  .row { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 14px 20px; transition: background .12s; }
+  .row:active { background: var(--fill); }
+  .row.off .rname, .row.off .ico { opacity: .45; }
+  .row .mid { flex: 1; min-width: 0; }
+  .rname { font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .rname small { font-size: 13px; color: var(--text-3); font-weight: 500; }
+  .rsub { font-size: 14px; color: var(--text-3); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rsub .so { color: var(--red); font-weight: 500; }
+  .pills { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+  .pill { font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: var(--blue-soft); color: var(--blue); }
+  .pill.cash { background: var(--fill); color: var(--text-2); }
+  .pill.gray { background: var(--fill); color: var(--text-3); }
+  .chev { flex: none; color: var(--text-4); }
+  .state { font-size: 13px; font-weight: 600; }
+  .state.open { color: var(--green); }
+  .state.closed { color: var(--red); }
+  .state.unknown { color: var(--text-3); }
+  .empty { padding: 40px 20px; text-align: center; color: var(--text-3); font-size: 15px; }
+
+  .info { padding: 20px; font-size: 13px; line-height: 1.7; color: var(--text-3); }
+  .info b { color: var(--text-2); font-weight: 600; display: block; margin-bottom: 4px; font-size: 14px; }
+  .notice { display: flex; gap: 10px; align-items: flex-start; padding: 16px 20px; font-size: 14px; color: var(--text-2); line-height: 1.5; }
+  .notice .dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--text-4); margin-top: 8px; }
+
+  /* bottom sheet */
+  .dim { position: fixed; inset: 0; background: var(--dim); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 20; }
+  .dim.show { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 480px; z-index: 21;
+    background: var(--sheet); border-radius: 26px 26px 0 0;
+    transform: translate(-50%, 104%); transition: transform .32s cubic-bezier(.2,.8,.2,1);
+    padding: 10px 24px calc(20px + env(safe-area-inset-bottom)); max-height: 88vh; overflow-y: auto;
+  }
+  .sheet.show { transform: translate(-50%, 0); }
+  .grab { width: 36px; height: 4px; border-radius: 2px; background: var(--fill-strong); margin: 0 auto 18px; }
+  .s-head { display: flex; align-items: center; gap: 14px; }
+  .s-head .ico { width: 52px; height: 52px; font-size: 28px; border-radius: 16px; }
+  .s-head h3 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .s-head p { margin: 2px 0 0; font-size: 15px; color: var(--text-3); }
+  .s-label { font-size: 14px; font-weight: 600; color: var(--text-3); margin: 26px 0 10px; }
+  .paygrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .payitem { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-radius: 14px; background: var(--fill); font-size: 16px; font-weight: 600; }
+  .payitem.yes { background: var(--blue-soft); color: var(--blue); }
+  .payitem.no { color: var(--text-4); }
+  .payitem.unk { color: var(--text-3); }
+  .payitem svg { flex: none; }
+  .so-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .so-tag { padding: 8px 12px; border-radius: 10px; background: var(--red-soft); color: var(--red); font-size: 15px; font-weight: 600; }
+  .muted { font-size: 15px; color: var(--text-3); }
+  .ai { display: flex; align-items: center; gap: 8px; margin-top: 24px; padding: 12px 14px; border-radius: 12px; background: var(--fill); font-size: 13px; color: var(--text-2); }
+  .ai .spark { flex: none; font-size: 13px; font-weight: 700; color: var(--blue); }
+  .btns { display: flex; gap: 8px; margin-top: 20px; }
+  .btn { flex: 1; height: 56px; border-radius: 16px; font-size: 17px; font-weight: 600; transition: transform .1s, background .15s; }
+  .btn:active { transform: scale(.98); }
+  .btn.primary { background: var(--blue); color: #fff; }
+  .btn.primary:active { background: var(--blue-press); }
+  .btn.primary:disabled { background: var(--fill-strong); color: var(--text-4); cursor: default; transform: none; }
+  .btn.second { background: var(--fill); color: var(--text-2); }
+
+  .opt { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 18px 4px; font-size: 17px; font-weight: 500; text-align: left; border-bottom: 1px solid var(--fill); }
+  .opt:last-child { border-bottom: 0; }
+  .radio { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--fill-strong); display: grid; place-items: center; transition: .15s; }
+  .opt[aria-checked="true"] .radio { border-color: var(--blue); background: var(--blue); }
+  .opt[aria-checked="true"] .radio::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+  .s-title { margin: 4px 0 4px; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.4; }
+  .s-desc { margin: 0 0 10px; font-size: 15px; color: var(--text-3); }
+
+  /* toast */
+  .toast { position: fixed; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom)); z-index: 30; transform: translate(-50%, 16px); opacity: 0;
+    display: flex; align-items: center; gap: 10px; background: var(--toast); color: #fff; padding: 14px 18px; border-radius: 16px;
+    font-size: 15px; font-weight: 500; transition: .28s cubic-bezier(.2,.8,.2,1); pointer-events: none; width: max-content; max-width: calc(100% - 32px); }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast .ok { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--green); display: grid; place-items: center; }
+
+  .hl { animation: hl 1.6s ease; }
+  @keyframes hl { 0%, 60% { background: var(--blue-soft); } 100% { background: transparent; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <span class="place">야시장</span>
+    <span class="demo">수업 예시 · 가상 데이터</span>
+  </div>
+
+  <section class="hero">
+    <div class="date" id="date"></div>
+    <h1 id="headline"></h1>
+  </section>
+
+  <div class="block">
+    <button class="toggle-row" id="cashless" aria-pressed="false">
+      <span class="ico">💳</span>
+      <span class="t"><b>현금 없이 왔어요</b><span>카드 · 이체 · 페이 되는 곳만 볼게요</span></span>
+      <span class="sw" aria-hidden="true"></span>
+    </button>
+  </div>
+
+  <div class="seg-wrap">
+    <div class="seg" id="seg" role="group" aria-label="필터">
+      <button data-f="all" aria-pressed="true">전체</button>
+      <button data-f="open" aria-pressed="false">영업 중</button>
+      <button data-f="card" aria-pressed="false">카드</button>
+      <button data-f="transfer" aria-pressed="false">이체</button>
+      <button data-f="pay" aria-pressed="false">페이</button>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="list-head"><h2>매대</h2><span id="count"></span></div>
+    <div id="list"></div>
+  </div>
+
+  <div class="block">
+    <div class="notice"><span class="dot"></span><span>야시장 전체 운영 공지는 아직 연결 전이에요. 매대별 영업 여부는 상인이 직접 올린 정보예요.</span></div>
+  </div>
+
+  <div class="info">
+    <b>이 화면은 이렇게 만들어요</b>
+    상인이 장사 전에 올린 사진과 한마디를 AI가 정리했어요.<br>
+    매대는 번호순으로 보여 드려요. 입력을 자주 해도 위로 올라가지 않아요.<br>
+    이체는 가능 여부만 알려 드리고 계좌번호는 보여 주지 않아요.
+  </div>
+</div>
+
+<div class="dim" id="dim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// 화면 시연용 예시 데이터 (가상) — 실제로는 D5 매대 정보 입력 → AI 정리 결과로 채워짐
+const STALLS = [
+  { no: "01", name: "떡볶이", emoji: "🌶️", menu: "떡볶이 · 어묵", status: "open",   pay: { cash: 1, card: 1, transfer: 1, pay: 0 }, soldout: [],            at: "17:42" },
+  { no: "02", name: "납작만두", emoji: "🥟", menu: "납작만두",     status: "open",   pay: { cash: 1, card: 0, transfer: 1, pay: 0 }, soldout: [],            at: "17:30" },
+  { no: "03", name: "닭꼬치", emoji: "🍢", menu: "닭꼬치",       status: "open",   pay: { cash: 1, card: 0, transfer: 0, pay: 0 }, soldout: ["매운맛 꼬치"], at: "17:55" },
+  { no: "04", name: "도넛", emoji: "🍩", menu: "찹쌀 도넛 · 꽈배기", status: "closed", pay: { cash: 1, card: 1, transfer: 0, pay: 1 }, soldout: [],      at: "16:10", note: "오늘 쉬어요" },
+  { no: "05", name: "막창구이", emoji: "🔥", menu: "막창 · 대창",   status: "open",   pay: { cash: 1, card: 1, transfer: 1, pay: 1 }, soldout: ["대창"],       at: "17:48" },
+  { no: "06", name: "호떡", emoji: "🥞", menu: "호떡",         status: "unknown", pay: null,                                  soldout: null,          at: null },
+  { no: "07", name: "김밥", emoji: "🍙", menu: "김밥 · 유부초밥", status: "open",   pay: { cash: 1, card: 0, transfer: 0, pay: 1 }, soldout: [],            at: "17:20" },
+  { no: "08", name: "과일컵", emoji: "🍓", menu: "과일 컵",      status: "open",   pay: { cash: 0, card: 1, transfer: 1, pay: 1 }, soldout: ["망고 컵"],     at: "17:58" },
+];
+const PAY = [["card", "카드"], ["transfer", "이체"], ["pay", "페이"], ["cash", "현금"]];
+const STATE_TXT = { open: "영업 중", closed: "오늘 휴무", unknown: "입력 전" };
+const S = { cashless: false, f: "all" };
+const $ = (s) => document.querySelector(s);
+
+const cashlessOk = (s) => s.pay && (s.pay.card || s.pay.transfer || s.pay.pay);
+function visible(s) {
+  if (S.cashless && !cashlessOk(s)) return false;
+  if (S.f === "open") return s.status === "open";
+  if (S.f !== "all") return !!(s.pay && s.pay[S.f]);
+  return true;
+}
+
+function headline() {
+  const n = STALLS.filter((s) => s.status === "open" && cashlessOk(s)).length;
+  const open = STALLS.filter((s) => s.status === "open").length;
+  $("#headline").innerHTML = S.cashless
+    ? `현금 없이도<br><em>${n}곳</em>에서 살 수 있어요`
+    : `오늘 <em>${open}곳</em>이 문을 열었어요<br>줄 서기 전에 확인하세요`;
+}
+
+function pills(s) {
+  if (!s.pay) return '<div class="pills"><span class="pill gray">결제 정보 없음</span></div>';
+  const on = PAY.filter(([k]) => s.pay[k]);
+  return '<div class="pills">' + on.map(([k, l]) => `<span class="pill ${k === "cash" ? "cash" : ""}">${l}</span>`).join("") + "</div>";
+}
+
+const chev = '<svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function render() {
+  headline();
+  const shown = STALLS.filter(visible);
+  $("#count").textContent = `${shown.length}곳`;
+  $("#list").innerHTML = shown.length ? shown.map((s) => `
+    <button class="row ${s.status !== "open" ? "off" : ""}" data-no="${s.no}" id="r-${s.no}">
+      <span class="ico">${s.emoji}</span>
+      <span class="mid">
+        <span class="rname">${s.name} <small>${s.no}번</small></span>
+        <span class="rsub"><span class="state ${s.status}">${STATE_TXT[s.status]}</span>${s.soldout && s.soldout.length ? ` · <span class="so">${s.soldout.join(", ")} 품절</span>` : ` · ${s.menu}`}</span>
+        ${pills(s)}
+      </span>
+      ${chev}
+    </button>`).join("") : '<div class="empty">조건에 맞는 매대가 없어요</div>';
+}
+
+/* ---------- sheet ---------- */
+const sheet = $("#sheet"), dim = $("#dim");
+function openSheet(html) { sheet.innerHTML = '<div class="grab"></div>' + html; dim.classList.add("show"); sheet.classList.add("show"); document.body.classList.add("lock"); }
+function closeSheet() { dim.classList.remove("show"); sheet.classList.remove("show"); document.body.classList.remove("lock"); }
+dim.addEventListener("click", closeSheet);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSheet(); });
+
+const ICON_YES = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 12.5l3.2 3L17 9" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_NO = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M7 7l10 10M17 7L7 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+
+function detail(no) {
+  const s = STALLS.find((x) => x.no === no); if (!s) return;
+  const pay = PAY.map(([k, l]) => {
+    if (!s.pay) return `<div class="payitem unk">${l}<span style="font-size:13px">미확인</span></div>`;
+    return s.pay[k] ? `<div class="payitem yes">${l}${ICON_YES}</div>` : `<div class="payitem no">${l}${ICON_NO}</div>`;
+  }).join("");
+  let so;
+  if (s.soldout === null) so = '<div class="muted">아직 정보가 없어요. 휴무인지 입력 전인지 확인되지 않았어요.</div>';
+  else if (!s.soldout.length) so = '<div class="muted">품절된 메뉴가 없어요</div>';
+  else so = '<div class="so-list">' + s.soldout.map((m) => `<span class="so-tag">${m}</span>`).join("") + "</div>";
+  const ai = s.at
+    ? `<div class="ai"><span class="spark">AI 정리</span><span>상인 입력 ${s.at} 기준${s.note ? ` · "${s.note}"` : ""}</span></div>`
+    : '<div class="ai"><span>오늘은 상인 입력이 아직 없어요</span></div>';
+  openSheet(`
+    <div class="s-head"><span class="ico">${s.emoji}</span><div><h3 id="sheetTitle">${s.name}</h3><p>${s.no}번 매대 · <span class="state ${s.status}">${STATE_TXT[s.status]}</span></p></div></div>
+    <div class="s-label">결제 수단</div><div class="paygrid">${pay}</div>
+    <div class="s-label">품절 메뉴</div>${so}
+    ${ai}
+    <div class="btns"><button class="btn second" data-act="report" data-no="${s.no}">정보가 달라요</button><button class="btn primary" data-act="close">확인</button></div>`);
+}
+
+let pick = null;
+function reportSheet(no) {
+  pick = null;
+  const opts = ["결제 수단이 달라요", "영업 여부가 달라요", "품절 정보가 달라요", "다른 문제가 있어요"];
+  openSheet(`
+    <p class="s-title" id="sheetTitle">어떤 정보가<br>실제와 달랐나요?</p>
+    <p class="s-desc">${no}번 매대 · 확인하고 바로 고칠게요</p>
+    <div role="radiogroup">${opts.map((o) => `<button class="opt" role="radio" aria-checked="false" data-opt="${o}">${o}<span class="radio"></span></button>`).join("")}</div>
+    <div class="btns"><button class="btn primary" id="send" data-act="send" data-no="${no}" disabled>신고하기</button></div>`);
+}
+
+sheet.addEventListener("click", (e) => {
+  const o = e.target.closest(".opt");
+  if (o) {
+    sheet.querySelectorAll(".opt").forEach((x) => x.setAttribute("aria-checked", x === o));
+    pick = o.dataset.opt; $("#send").disabled = false; return;
+  }
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  if (b.dataset.act === "close") closeSheet();
+  if (b.dataset.act === "report") { closeSheet(); setTimeout(() => reportSheet(b.dataset.no), 260); }
+  if (b.dataset.act === "send") {
+    // 실제 서비스: N2 신고 기록 저장 → A5 신고 접수 · 수정
+    closeSheet(); toast("신고가 접수됐어요. 확인 후 고칠게요");
+  }
+});
+
+function toast(msg) {
+  const t = $("#toast");
+  t.innerHTML = `<span class="ok"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>${msg}`;
+  t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2400);
+}
+
+/* ---------- events ---------- */
+$("#list").addEventListener("click", (e) => { const r = e.target.closest(".row"); if (r) detail(r.dataset.no); });
+$("#cashless").addEventListener("click", (e) => {
+  S.cashless = !S.cashless; e.currentTarget.setAttribute("aria-pressed", S.cashless); render();
+});
+$("#seg").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  S.f = b.dataset.f; $("#seg").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); render();
+});
+
+const d = new Date();
+$("#date").textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 ${"일월화수목금토"[d.getDay()]}요일`;
+render();
+
+// 매대 앞 QR: ?stall=05 → 해당 매대 상세를 바로 열기
+const q = new URLSearchParams(location.search).get("stall");
+if (q) {
+  const no = q.padStart(2, "0"), r = document.getElementById("r-" + no);
+  if (r) { r.scrollIntoView({ block: "center" }); r.classList.add("hl"); setTimeout(() => detail(no), 350); }
+}
+</script>
+</body>
+</html>
