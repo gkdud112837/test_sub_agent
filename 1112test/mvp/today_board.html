@@ -1,0 +1,418 @@
+<title>오늘의 매대판</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+  /* 디자인 시스템: design/design-system.md v1
+     레이아웃: 한 손 세로 흐름 — 밤 패널(운영 상태) → 현금 없이 스위치 → 필터 → 매대 목록. 넓은 화면은 폰 프레임 미리보기. */
+  :root {
+    --bg: #F3F4F7; --surface: #FFFFFF; --surface-2: #ECEEF3; --line: #DDE1E8;
+    --ink: #141824; --ink-2: #475066; --ink-3: #737C91;
+    --night: #1C2550; --night-ink: #F2F4FB; --night-ink-2: #AEB7D6; --lamp: #F2A23C;
+    --ok: #0B8457; --ok-bg: #DFF3EA; --off: #A3A9B6; --sold: #C93838; --sold-bg: #FCEAEA;
+    --focus: #2E6BE6; --scrim: rgba(13, 16, 32, .5); --desk: #DCE0E8; --bezel: #0D1020;
+    --f-sign: "Do Hyeon", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    --f-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+    --r-s: 8px; --r-m: 14px; --r-l: 20px; --r-sheet: 24px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0D1020; --surface: #161A2C; --surface-2: #1F2438; --line: #2A3048;
+      --ink: #EEF0F6; --ink-2: #B7BDCD; --ink-3: #858FA6;
+      --night: #232D63; --lamp: #F4AE52;
+      --ok: #3CC98F; --ok-bg: #12301F; --off: #5B637C; --sold: #FF7A7A; --sold-bg: #3A1C22;
+      --focus: #7AA2FF; --scrim: rgba(0, 0, 0, .62); --desk: #05060C; --bezel: #000;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0D1020; --surface: #161A2C; --surface-2: #1F2438; --line: #2A3048;
+    --ink: #EEF0F6; --ink-2: #B7BDCD; --ink-3: #858FA6;
+    --night: #232D63; --lamp: #F4AE52;
+    --ok: #3CC98F; --ok-bg: #12301F; --off: #5B637C; --sold: #FF7A7A; --sold-bg: #3A1C22;
+    --focus: #7AA2FF; --scrim: rgba(0, 0, 0, .62); --desk: #05060C; --bezel: #000;
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--ink); font: 400 15px/1.55 var(--f-body); word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
+  [hidden] { display: none !important; }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: var(--r-s); }
+  .mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+
+  /* ---------- 폰 프레임 (넓은 화면 미리보기) ---------- */
+  .phone { position: relative; min-height: 100%; background: var(--bg); }
+  .screen {
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-top: calc(12px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .screen > * { flex-shrink: 0; min-width: 0; }
+  .caption { display: none; }
+  @media (min-width: 720px) {
+    body { background: var(--desk); }
+    .stage { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px 0; }
+    .phone { width: 390px; height: min(820px, calc(100vh - 72px)); min-height: 560px; border: 10px solid var(--bezel); border-radius: 46px; overflow: hidden; transform: translateZ(0); box-shadow: 0 30px 60px -24px rgba(13, 16, 32, .45); }
+    .screen { height: 100%; overflow-y: auto; scrollbar-width: none; padding-top: 40px; }
+    .screen::-webkit-scrollbar { display: none; }
+    .phone::before { content: ""; position: absolute; z-index: 40; top: 10px; left: 50%; transform: translateX(-50%); width: 92px; height: 24px; border-radius: 12px; background: var(--bezel); }
+    .caption { display: block; margin: 0; font-size: 12px; color: var(--ink-3); }
+    body.lock .screen { overflow: hidden; }
+  }
+  body.lock { overflow: hidden; }
+
+  /* ---------- 상단 ---------- */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
+  .brand { display: flex; flex-direction: column; }
+  .brand small { font-size: 12px; color: var(--ink-3); font-weight: 500; }
+  .brand b { font-family: var(--f-sign); font-weight: 400; font-size: 24px; line-height: 1.1; }
+  .mode { display: flex; padding: 3px; gap: 2px; border-radius: 12px; background: var(--surface-2); }
+  .mode button { min-height: 36px; padding: 0 10px; border-radius: 9px; font-size: 13px; font-weight: 500; color: var(--ink-3); }
+  .mode button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 700; }
+
+  /* ---------- 밤 패널 ---------- */
+  .night { background: var(--night); color: var(--night-ink); border-radius: var(--r-l); padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .night .when { font-size: 13px; color: var(--night-ink-2); }
+  .night .state { font-family: var(--f-sign); font-size: 32px; line-height: 1.1; color: var(--lamp); }
+  .night .say { white-space: pre-line; font-size: 16px; font-weight: 500; line-height: 1.5; text-wrap: balance; }
+  .track { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .14); overflow: hidden; }
+  .track i { display: block; height: 100%; border-radius: 3px; background: var(--lamp); }
+  .ticks { display: flex; justify-content: space-between; font-size: 12px; color: var(--night-ink-2); margin-top: 6px; }
+  .night .src { font-size: 12px; color: var(--night-ink-2); border-top: 1px solid rgba(255, 255, 255, .12); padding-top: 12px; }
+
+  /* ---------- 스위치 · 칩 ---------- */
+  .card { background: var(--surface); border-radius: var(--r-l); }
+  .switch-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 12px 16px 12px 20px; }
+  .switch-row .t { flex: 1; min-width: 0; }
+  .switch-row b { display: block; font-size: 16px; font-weight: 700; }
+  .switch-row span.d { display: block; font-size: 13px; color: var(--ink-3); }
+  .sw { flex: none; width: 52px; height: 32px; border-radius: 16px; background: var(--line); position: relative; transition: background .2s; }
+  .sw::after { content: ""; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .2); transition: transform .2s; }
+  .switch-row[aria-pressed="true"] .sw { background: var(--ok); }
+  .switch-row[aria-pressed="true"] .sw::after { transform: translateX(20px); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips button { min-height: 36px; padding: 0 14px; border-radius: var(--r-s); background: var(--surface); font-size: 13px; font-weight: 500; color: var(--ink-2); border: 1px solid var(--line); }
+  .chips button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); font-weight: 700; }
+
+  /* ---------- 목록 ---------- */
+  .list-head { display: flex; align-items: baseline; justify-content: space-between; padding: 20px 20px 8px; }
+  .list-head h2 { margin: 0; font-size: 18px; font-weight: 700; }
+  .list-head span { font-size: 12px; color: var(--ink-3); }
+  .row { display: grid; grid-template-columns: 48px 1fr; gap: 6px 14px; width: 100%; padding: 14px 20px 16px; border-top: 1px solid var(--surface-2); }
+  .row:first-child { border-top: 0; }
+  .row:active { background: var(--surface-2); }
+  .plate { grid-row: span 3; width: 48px; height: 48px; border-radius: var(--r-m); background: var(--surface-2); display: grid; place-items: center; font-family: var(--f-sign); font-size: 22px; color: var(--ink-2); }
+  .row.dim .plate, .row.dim .name { opacity: .45; }
+  .name-line { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .name { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .st { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+  .st::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .st.open { color: var(--ok); } .st.closed, .st.early { color: var(--sold); }
+  .st.unknown, .st.off { color: var(--ink-3); }
+  .st.unknown::before { background: transparent; border: 1.5px solid var(--off); }
+  .line2 { font-size: 13px; color: var(--ink-3); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .line2 .so { color: var(--sold); font-weight: 500; }
+  .old { font-size: 11px; font-weight: 700; color: var(--sold); background: var(--sold-bg); border-radius: 4px; padding: 1px 5px; margin-left: 4px; }
+
+  /* 결제 칸 줄 — 현금 · 카드 · 이체 · 페이 고정 순서 */
+  .pays { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+  .pay { display: flex; align-items: center; justify-content: center; gap: 3px; height: 28px; border-radius: var(--r-s); font-size: 12px; font-weight: 500; }
+  .pay.yes { background: var(--ok-bg); color: var(--ok); font-weight: 700; }
+  .pay.no { color: var(--off); text-decoration: line-through; }
+  .pay.unk { color: var(--ink-3); border: 1px dashed var(--off); }
+  .pay.muted { opacity: .35; }
+  .empty { padding: 32px 20px; text-align: center; color: var(--ink-3); }
+
+  .foot { font-size: 12px; line-height: 1.7; color: var(--ink-3); padding: 4px 4px 0; }
+  .foot b { color: var(--ink-2); font-size: 13px; display: block; margin-bottom: 2px; }
+
+  /* ---------- 시트 ---------- */
+  .scrim { position: fixed; inset: 0; z-index: 20; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .22s; }
+  .scrim.show { opacity: 1; pointer-events: auto; }
+  .sheet { position: fixed; z-index: 21; left: 50%; bottom: 0; width: 100%; max-width: 480px; max-height: 88%; overflow-y: auto;
+    background: var(--surface); border-radius: var(--r-sheet) var(--r-sheet) 0 0; box-shadow: 0 -12px 40px -16px rgba(0, 0, 0, .35);
+    padding: 10px max(20px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
+    transform: translate(-50%, 104%); transition: transform .28s cubic-bezier(.2, .8, .2, 1); }
+  .sheet.show { transform: translate(-50%, 0); }
+  .grab { width: 36px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto 16px; }
+  .s-head { display: flex; align-items: center; gap: 14px; }
+  .s-head .plate { width: 56px; height: 56px; font-size: 26px; grid-row: auto; }
+  .s-head h3 { margin: 0; font-size: 22px; line-height: 1.3; font-weight: 700; }
+  .s-label { margin: 24px 0 8px; font-size: 13px; font-weight: 700; color: var(--ink-3); }
+  .paybig { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .paybig .pay { height: 52px; font-size: 15px; border-radius: var(--r-m); justify-content: space-between; padding: 0 16px; }
+  .paybig .pay.no { background: var(--surface-2); }
+  .menu { display: flex; flex-direction: column; }
+  .menu div { display: flex; align-items: center; justify-content: space-between; min-height: 44px; border-bottom: 1px solid var(--surface-2); font-size: 15px; }
+  .menu div:last-child { border-bottom: 0; }
+  .menu .x { color: var(--off); text-decoration: line-through; }
+  .tag { font-size: 12px; font-weight: 700; color: var(--sold); background: var(--sold-bg); padding: 2px 8px; border-radius: 6px; }
+  .src-tag { margin-top: 20px; padding: 12px 14px; border-radius: var(--r-m); background: var(--surface-2); font-size: 12px; color: var(--ink-2); }
+  .src-tag b { color: var(--ink); }
+  .btns { display: flex; gap: 8px; margin-top: 16px; }
+  .btn { flex: 1; height: 52px; border-radius: var(--r-m); font-size: 16px; font-weight: 700; text-align: center; }
+  .btn.main { background: var(--ink); color: var(--surface); }
+  .btn.main:disabled { background: var(--line); color: var(--ink-3); cursor: default; }
+  .btn.sub { background: var(--surface-2); color: var(--ink-2); }
+  .s-title { margin: 4px 0; font-size: 22px; font-weight: 700; line-height: 1.35; }
+  .s-desc { margin: 0 0 8px; font-size: 13px; color: var(--ink-3); }
+  .opt { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 52px; font-size: 16px; border-bottom: 1px solid var(--surface-2); }
+  .opt:last-child { border-bottom: 0; }
+  .radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; }
+  .opt[aria-checked="true"] .radio { border-color: var(--ink); background: var(--ink); }
+  .opt[aria-checked="true"] .radio::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--surface); }
+  .toast { position: fixed; z-index: 30; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 12px); opacity: 0; pointer-events: none;
+    width: max-content; max-width: calc(100% - 32px); padding: 12px 16px; border-radius: var(--r-m); background: var(--ink); color: var(--surface); font-size: 14px; font-weight: 500;
+    box-shadow: 0 12px 30px -12px rgba(0, 0, 0, .4); transition: .24s; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .hl { animation: hl 1.6s ease; }
+  @keyframes hl { 0%, 60% { background: var(--ok-bg); } 100% { background: transparent; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+</style>
+<div class="stage">
+  <div class="phone">
+    <main class="screen" id="screen">
+      <header class="top">
+        <div class="brand"><small>서문시장 야시장</small><b>오늘의 매대판</b></div>
+        <div class="mode" role="group" aria-label="보는 시각">
+          <button id="m-now" data-m="now" aria-pressed="true">오늘</button>
+          <button id="m-demo" data-m="demo" aria-pressed="false">영업일 시연</button>
+        </div>
+      </header>
+
+      <section class="night" aria-label="야시장 운영 상태">
+        <div>
+          <div class="when" id="when"></div>
+          <div class="state" id="state"></div>
+        </div>
+        <p class="say" id="say" style="margin:0"></p>
+        <div>
+          <div class="track"><i id="bar"></i></div>
+          <div class="ticks mono" id="ticks"></div>
+        </div>
+        <div class="src">장사 시간 18:00–23:00 · 금 · 토 · 일 · 12월까지 · 상인회 공식 공지 연결 전</div>
+      </section>
+
+      <div class="card">
+        <button class="switch-row" id="cashless" aria-pressed="false">
+          <span class="t"><b>현금 없이 왔어요</b><span class="d">카드 · 이체 · 페이 되는 매대만 볼게요</span></span>
+          <span class="sw" aria-hidden="true"></span>
+        </button>
+      </div>
+
+      <div class="chips" id="chips" role="group" aria-label="필터">
+        <button data-f="all" aria-pressed="true">전체</button>
+        <button data-f="open" aria-pressed="false">영업 중</button>
+        <button data-f="card" aria-pressed="false">카드</button>
+        <button data-f="transfer" aria-pressed="false">이체</button>
+        <button data-f="pay" aria-pressed="false">페이</button>
+        <button data-f="nosold" aria-pressed="false">품절 없음</button>
+      </div>
+
+      <section class="card" aria-labelledby="listTitle">
+        <div class="list-head"><h2 id="listTitle">매대</h2><span id="count"></span></div>
+        <div id="list"></div>
+      </section>
+
+      <div class="foot">
+        <b>이 화면은 이렇게 만들어요</b>
+        상인이 장사 전에 올린 사진과 한마디를 AI가 정리했어요. 품절은 상인이 직접 누른 것만 보여 드려요.<br>
+        매대는 번호순이에요. 입력을 자주 해도 위로 올라가지 않아요.<br>
+        이체는 되는지만 알려 드리고 계좌번호는 보여 주지 않아요.<br>
+        예시 매대 12곳 · 수업 예시 가상 데이터
+      </div>
+    </main>
+
+    <div class="scrim" id="scrim"></div>
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+  <p class="caption">모바일 화면 미리보기 · 390px</p>
+</div>
+
+<script>
+/* 운영 일정 — 요일: 1110test 분석(금 · 토 · 일, 12월까지) · 시간: 1111test 밸류체인(18:00~23:00, 최신 파일) — decision_log D-01 */
+const SCHED = { 5: [1080, 1380], 6: [1080, 1380], 0: [1080, 1380] };
+const SEASON_END = new Date(2026, 11, 31, 23, 59);
+const DAY = "일월화수목금토";
+const hm = (m) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+const dur = (m) => (m >= 60 ? `${Math.floor(m / 60)}시간${m % 60 ? ` ${m % 60}분` : ""}` : `${m}분`);
+
+function market(d) {
+  const mins = d.getHours() * 60 + d.getMinutes(), sch = SCHED[d.getDay()];
+  if (d > SEASON_END) return { kind: "season", mins };
+  if (sch && mins >= sch[0] && mins < sch[1]) return { kind: "open", mins, sch };
+  if (sch && mins < sch[0]) return { kind: "before", mins, sch };
+  for (let i = 1; i <= 7; i++) {
+    const n = new Date(d); n.setDate(d.getDate() + i);
+    if (SCHED[n.getDay()] && n <= SEASON_END) return { kind: sch ? "after" : "off", mins, sch, next: n, nextSch: SCHED[n.getDay()], inDays: i };
+  }
+  return { kind: "season", mins };
+}
+
+/* 예시 매대 (가상) — 실제로는 상인 입력(D5) → AI 정리. at = 마지막 입력 시각(분) */
+const STALLS = [
+  { no: "01", name: "떡볶이", status: "open", pay: { cash: 1, card: 1, transfer: 1, pay: 0 }, soldout: [], at: 1210, menu: ["떡볶이", "어묵", "튀김 모둠"] },
+  { no: "02", name: "납작만두", status: "open", pay: { cash: 1, card: 0, transfer: 1, pay: 0 }, soldout: [], at: 1195, menu: ["납작만두", "만두 + 떡볶이"] },
+  { no: "03", name: "닭꼬치", status: "open", pay: { cash: 1, card: 0, transfer: 0, pay: 0 }, soldout: ["매운맛 꼬치"], at: 1218, menu: ["간장 꼬치", "매운맛 꼬치"] },
+  { no: "04", name: "찹쌀도넛", status: "closed", pay: { cash: 1, card: 1, transfer: 0, pay: 1 }, soldout: [], at: 1020, note: "오늘 쉬어요", menu: ["찹쌀도넛", "꽈배기"] },
+  { no: "05", name: "막창구이", status: "open", pay: { cash: 1, card: 1, transfer: 1, pay: 1 }, soldout: ["대창"], at: 1222, menu: ["막창", "대창", "주먹밥"] },
+  { no: "06", name: "호떡", status: "unknown", pay: null, soldout: null, at: null, menu: ["씨앗호떡"] },
+  { no: "07", name: "김밥", status: "open", pay: { cash: 1, card: 0, transfer: 0, pay: 1 }, soldout: [], at: 1180, menu: ["꼬마김밥", "유부초밥"] },
+  { no: "08", name: "과일컵", status: "open", pay: { cash: 0, card: 1, transfer: 1, pay: 1 }, soldout: ["망고컵"], at: 1225, menu: ["딸기컵", "망고컵", "샤인머스캣컵"] },
+  { no: "09", name: "수제어묵", status: "open", pay: { cash: 1, card: 1, transfer: 0, pay: 0 }, soldout: [], at: 1120, menu: ["수제어묵", "어묵탕"] },
+  { no: "10", name: "삼겹꼬치", status: "open", pay: { cash: 0, card: 1, transfer: 0, pay: 1 }, soldout: [], at: 1212, menu: ["삼겹꼬치", "치즈 삼겹꼬치"] },
+  { no: "11", name: "식혜 · 수정과", status: "open", pay: { cash: 1, card: 1, transfer: 1, pay: 1 }, soldout: [], at: 1200, menu: ["식혜", "수정과"] },
+  { no: "12", name: "회오리감자", status: "early", pay: { cash: 1, card: 1, transfer: 0, pay: 0 }, soldout: ["회오리감자", "치즈감자"], at: 1215, note: "재료가 떨어져 일찍 닫았어요", menu: ["회오리감자", "치즈감자"] },
+];
+const PAY = [["cash", "현금"], ["card", "카드"], ["transfer", "이체"], ["pay", "페이"]];
+const ST = { open: "영업 중", early: "일찍 닫음", closed: "오늘 휴무", unknown: "입력 전" };
+const STALE = 90; // 분 — 오래된 정보 기준 (재료에 없음 · no-request W07)
+
+const S = { mode: "now", cashless: false, f: "all" };
+const $ = (s) => document.querySelector(s);
+try { const m = localStorage.getItem("tb-mode2"); if (m === "now" || m === "demo") S.mode = m; } catch (e) {}
+
+function demoNow() { const d = new Date(); d.setHours(20, 30, 0, 0); while (d.getDay() !== 5) d.setDate(d.getDate() + 1); return d; }
+const nowDate = () => (S.mode === "demo" ? demoNow() : new Date());
+const live = (mk) => mk.kind === "open";
+const cashlessOk = (s) => s.pay && (s.pay.card || s.pay.transfer || s.pay.pay);
+
+function visible(s, mk) {
+  if (S.cashless && !cashlessOk(s)) return false;
+  if (S.f === "open") return live(mk) && s.status === "open";
+  if (S.f === "nosold") return live(mk) && s.status === "open" && s.soldout && !s.soldout.length;
+  if (S.f !== "all") return !!(s.pay && s.pay[S.f]);
+  return true;
+}
+
+let MK;
+function renderNight(d) {
+  const mk = MK, sch = mk.sch || mk.nextSch || [1080, 1380];
+  $("#when").textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 ${DAY[d.getDay()]}요일 · ${hm(mk.mins)}${S.mode === "demo" ? " (시연)" : ""}`;
+  $("#ticks").innerHTML = `<span>${hm(sch[0])} 개장</span><span>${hm(sch[1])} 마감</span>`;
+  const openN = STALLS.filter((s) => s.status === "open").length, okN = STALLS.filter((s) => s.status === "open" && cashlessOk(s)).length;
+  let state, say, w = 0;
+  if (mk.kind === "open") {
+    state = "영업 중"; w = (mk.mins - sch[0]) / (sch[1] - sch[0]);
+    say = S.cashless ? `현금 없이도 ${okN}곳에서 살 수 있어요` : `지금 ${openN}곳이 장사 중이에요
+마감까지 ${dur(sch[1] - mk.mins)}`;
+  } else if (mk.kind === "before") {
+    state = "개장 전"; say = `오늘 ${hm(sch[0])}에 열어요 · ${dur(sch[0] - mk.mins)} 남았어요
+결제 수단은 미리 볼 수 있어요`;
+  } else if (mk.kind === "season") {
+    state = "운영 끝"; say = "올해 야시장 운영이 끝났어요";
+  } else {
+    const nx = mk.next, when = mk.inDays === 1 ? "내일" : `${nx.getMonth() + 1}/${nx.getDate()}`;
+    state = mk.kind === "after" ? "영업 끝" : "쉬는 날"; w = mk.kind === "after" ? 1 : 0;
+    say = `${mk.kind === "after" ? "오늘 장사는 끝났어요" : `오늘(${DAY[d.getDay()]})은 야시장이 쉬어요`}
+다음 개장 ${when}(${DAY[nx.getDay()]}) ${hm(mk.nextSch[0])}`;
+  }
+  $("#state").textContent = state; $("#say").textContent = say; $("#bar").style.width = `${w * 100}%`;
+}
+
+function pays(s, big) {
+  return PAY.map(([k, l]) => {
+    const muted = !big && S.cashless && k === "cash" ? " muted" : "";
+    if (!s.pay) return `<span class="pay unk${muted}">${l} ?</span>`;
+    return s.pay[k] ? `<span class="pay yes${muted}">${l} ✓</span>` : `<span class="pay no${muted}">${l}</span>`;
+  }).join("");
+}
+function line2(s, mk) {
+  if (!live(mk)) return s.menu.slice(0, 3).join(" · ");
+  if (s.status === "unknown") return "휴무인지 아직 몰라요";
+  if (s.status !== "open") return s.note || "";
+  const old = s.at != null && mk.mins - s.at > STALE ? `<span class="old">${dur(mk.mins - s.at)} 전 정보</span>` : "";
+  return (s.soldout.length ? `<span class="so">${s.soldout.join(", ")} 품절</span>` : s.menu.join(" · ")) + old;
+}
+function stTag(s, mk) {
+  if (!live(mk)) return `<span class="st off">${mk.kind === "before" ? "개장 전" : "쉬는 날"}</span>`;
+  return `<span class="st ${s.status}">${ST[s.status]}</span>`;
+}
+
+function renderList(mk) {
+  const shown = STALLS.filter((s) => visible(s, mk));
+  $("#count").textContent = `${shown.length}곳 · 번호순`;
+  $("#list").innerHTML = shown.length ? shown.map((s) => `
+    <button class="row ${live(mk) && s.status === "open" ? "" : "dim"}" id="r-${s.no}" data-no="${s.no}">
+      <span class="plate">${s.no}</span>
+      <span class="name-line"><span class="name">${s.name}</span>${stTag(s, mk)}</span>
+      <span class="line2">${line2(s, mk)}</span>
+      <span class="pays">${pays(s)}</span>
+    </button>`).join("") : '<div class="empty">조건에 맞는 매대가 없어요. 필터를 바꿔 보세요.</div>';
+}
+
+function render() { const d = nowDate(); MK = market(d); renderNight(d); renderList(MK); }
+
+/* 시트 */
+const sheet = $("#sheet"), scrim = $("#scrim");
+function openSheet(h) { sheet.innerHTML = '<div class="grab"></div>' + h; sheet.scrollTop = 0; scrim.classList.add("show"); sheet.classList.add("show"); document.body.classList.add("lock"); }
+function closeSheet() { scrim.classList.remove("show"); sheet.classList.remove("show"); document.body.classList.remove("lock"); }
+scrim.addEventListener("click", closeSheet);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSheet(); });
+
+function detail(no) {
+  const s = STALLS.find((x) => x.no === no); if (!s) return;
+  const mk = MK, on = live(mk), sold = new Set(on && s.soldout ? s.soldout : []);
+  const menu = s.menu.map((m) => `<div><span class="${sold.has(m) ? "x" : ""}">${m}</span>${sold.has(m) ? '<span class="tag">품절</span>' : ""}</div>`).join("");
+  let src;
+  if (!on) src = `야시장이 ${mk.kind === "before" ? "아직 열기 전" : "쉬는 날"}이에요. 결제 수단과 메뉴는 <b>지난 영업일 입력</b> 기준이에요.`;
+  else if (s.at == null) src = "오늘은 상인 입력이 아직 없어요. 결제 수단은 매대에서 직접 확인해 주세요.";
+  else { const ago = mk.mins - s.at; src = `<b>AI 정리</b> · 상인 입력 <span class="mono">${hm(s.at)}</span> · ${dur(ago)} 전${ago > STALE ? " · 오래된 정보예요" : ""}${s.note ? ` · “${s.note}”` : ""}`; }
+  openSheet(`
+    <div class="s-head"><span class="plate">${s.no}</span><div><h3 id="sheetTitle">${s.name}</h3>${stTag(s, mk)}</div></div>
+    <div class="s-label">결제 수단</div><div class="paybig">${pays(s, true)}</div>
+    <div class="s-label">메뉴</div><div class="menu">${menu}</div>
+    <div class="src-tag">${src}</div>
+    <div class="btns"><button class="btn sub" data-act="report" data-no="${s.no}">정보가 달라요</button><button class="btn main" data-act="close">확인</button></div>`);
+}
+
+function reportSheet(no) {
+  const opts = ["결제 수단이 달라요", "영업 여부가 달라요", "품절 정보가 달라요", "다른 문제가 있어요"];
+  openSheet(`
+    <p class="s-title" id="sheetTitle">어떤 정보가<br>실제와 달랐나요?</p>
+    <p class="s-desc">${no}번 매대 · 확인하고 고칠게요</p>
+    <div role="radiogroup">${opts.map((o, i) => `<button class="opt" id="opt-${i}" role="radio" aria-checked="false">${o}<span class="radio"></span></button>`).join("")}</div>
+    <div class="btns"><button class="btn main" id="send" data-act="send" disabled>알리기</button></div>`);
+}
+sheet.addEventListener("click", (e) => {
+  const o = e.target.closest(".opt");
+  if (o) { sheet.querySelectorAll(".opt").forEach((x) => x.setAttribute("aria-checked", x === o)); $("#send").disabled = false; return; }
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  if (b.dataset.act === "close") closeSheet();
+  if (b.dataset.act === "report") { closeSheet(); setTimeout(() => reportSheet(b.dataset.no), 240); }
+  if (b.dataset.act === "send") { closeSheet(); toast("알려 주셔서 고마워요. 확인하고 고칠게요"); } // 처리자는 미정(decision_log D-04)
+});
+function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2400); }
+
+/* 이벤트 */
+$("#list").addEventListener("click", (e) => { const r = e.target.closest(".row"); if (r) detail(r.dataset.no); });
+$("#cashless").addEventListener("click", (e) => { S.cashless = !S.cashless; e.currentTarget.setAttribute("aria-pressed", S.cashless); render(); });
+$("#chips").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  S.f = b.dataset.f; $("#chips").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); render();
+});
+document.querySelector(".mode").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  S.mode = b.dataset.m; try { localStorage.setItem("tb-mode2", S.mode); } catch (err) {}
+  syncMode(); render();
+});
+function syncMode() { document.querySelectorAll(".mode button").forEach((x) => x.setAttribute("aria-pressed", x.dataset.m === S.mode)); }
+syncMode(); render();
+setInterval(() => { if (S.mode === "now") render(); }, 60000);
+
+/* 매대 앞 QR: 링크 끝 #stall-05 → 그 매대 상세 */
+function fromHash() {
+  const m = location.hash.match(/^#stall-(\d{1,2})$/); if (!m) return;
+  const no = m[1].padStart(2, "0"), r = document.getElementById("r-" + no);
+  if (r) { r.scrollIntoView({ block: "center" }); r.classList.add("hl"); setTimeout(() => detail(no), 320); }
+}
+fromHash(); window.addEventListener("hashchange", fromHash);
+</script>
