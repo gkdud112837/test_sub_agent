@@ -3,249 +3,324 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1C2550">
+<meta name="theme-color" content="#07060F">
 <title>오늘의 매대판</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Nanum+Brush+Script&family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
 <style>
-  /* 디자인 시스템: design/design-system.md v1
-     레이아웃: 한 손 세로 흐름 — 밤 패널(운영 상태) → 현금 없이 스위치 → 필터 → 매대 목록. 넓은 화면은 폰 프레임 미리보기. */
+  /* 디자인 시스템: design/design-system.md v2 "포차 골목의 밤"
+     레이아웃: 프레임 없는 모바일 한 줄 흐름(최대 480px, 넓은 화면은 가운데 정렬).
+     줄조명 + 네온 간판(운영 상태) → 칠판(현금 없이) → 천막 차양 아래 포차 목록. 의도적으로 어두운 단일 테마. */
   :root {
-    --bg: #F3F4F7; --surface: #FFFFFF; --surface-2: #ECEEF3; --line: #DDE1E8;
-    --ink: #141824; --ink-2: #475066; --ink-3: #737C91;
-    --night: #1C2550; --night-ink: #F2F4FB; --night-ink-2: #AEB7D6; --lamp: #F2A23C;
-    --ok: #0B8457; --ok-bg: #DFF3EA; --off: #A3A9B6; --sold: #C93838; --sold-bg: #FCEAEA;
-    --focus: #2E6BE6; --scrim: rgba(13, 16, 32, .5); --desk: #DCE0E8; --bezel: #0D1020;
-    --f-sign: "Do Hyeon", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    --sky-0: #07060F;
+    --surface: #1A1325; --surface-2: #241A31; --line: #3B2D4A;
+    --ink: #FFF3E2; --ink-2: #DCCAB6; --ink-3: #A592A9;
+    --bulb: #FFD27A; --bulb-hot: #FFF2CC; --glow: rgba(255, 184, 77, .55);
+    --tarp-r: #D8382A; --tarp-o: #F2842B; --tarp-w: #F4E3C8;
+    --mint: #4FF0B6; --mint-bg: rgba(79, 240, 182, .13);
+    --pink: #FF5E7C; --pink-bg: rgba(255, 94, 124, .14);
+    --off: #6E6280; --focus: #FFD27A; --scrim: rgba(4, 3, 10, .66);
+    --chalk: #15241F; --wood: #5A3B22; --chalk-ink: #F3F0E4; --chalk-ink-2: #B9C9C0;
+    --on-bulb: #2A1A08;
+    --f-neon: "Black Han Sans", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --f-brush: "Nanum Brush Script", "Noto Sans KR", "Malgun Gothic", cursive;
     --f-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
     --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
-    --r-s: 8px; --r-m: 14px; --r-l: 20px; --r-sheet: 24px;
-    color-scheme: light;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0D1020; --surface: #161A2C; --surface-2: #1F2438; --line: #2A3048;
-      --ink: #EEF0F6; --ink-2: #B7BDCD; --ink-3: #858FA6;
-      --night: #232D63; --lamp: #F4AE52;
-      --ok: #3CC98F; --ok-bg: #12301F; --off: #5B637C; --sold: #FF7A7A; --sold-bg: #3A1C22;
-      --focus: #7AA2FF; --scrim: rgba(0, 0, 0, .62); --desk: #05060C; --bezel: #000;
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #0D1020; --surface: #161A2C; --surface-2: #1F2438; --line: #2A3048;
-    --ink: #EEF0F6; --ink-2: #B7BDCD; --ink-3: #858FA6;
-    --night: #232D63; --lamp: #F4AE52;
-    --ok: #3CC98F; --ok-bg: #12301F; --off: #5B637C; --sold: #FF7A7A; --sold-bg: #3A1C22;
-    --focus: #7AA2FF; --scrim: rgba(0, 0, 0, .62); --desk: #05060C; --bezel: #000;
+    --r-s: 8px; --r-m: 14px; --r-l: 20px;
     color-scheme: dark;
   }
 
   *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; height: 100%; }
-  body { background: var(--bg); color: var(--ink); font: 400 15px/1.55 var(--f-body); word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    color: var(--ink); font: 400 15px/1.55 var(--f-body); word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased;
+    background:
+      radial-gradient(120% 60% at 50% -12%, #2B1A4F 0%, transparent 62%),
+      radial-gradient(90% 40% at 50% 112%, #3A170F 0%, transparent 70%),
+      var(--sky-0);
+    background-attachment: fixed;
+  }
+  /* 멀리 번지는 불빛 (보케) */
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(3px 3px at 12% 18%, var(--bulb) 50%, transparent 100%),
+      radial-gradient(2px 2px at 82% 12%, var(--bulb-hot) 50%, transparent 100%),
+      radial-gradient(4px 4px at 68% 34%, rgba(255, 94, 124, .8) 50%, transparent 100%),
+      radial-gradient(3px 3px at 24% 52%, rgba(79, 240, 182, .6) 50%, transparent 100%),
+      radial-gradient(2px 2px at 90% 64%, var(--bulb) 50%, transparent 100%),
+      radial-gradient(3px 3px at 6% 80%, var(--tarp-o) 50%, transparent 100%),
+      radial-gradient(2px 2px at 48% 90%, var(--bulb-hot) 50%, transparent 100%),
+      radial-gradient(40px 40px at 92% 28%, rgba(255, 150, 60, .10), transparent 70%),
+      radial-gradient(60px 60px at 8% 40%, rgba(255, 94, 124, .08), transparent 70%),
+      radial-gradient(50px 50px at 80% 86%, rgba(255, 210, 122, .08), transparent 70%);
+    animation: twinkle 5s ease-in-out infinite alternate;
+  }
   [hidden] { display: none !important; }
   button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
-  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: var(--r-s); }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: var(--r-s); }
   .mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; letter-spacing: 0; }
 
-  /* ---------- 폰 프레임 (넓은 화면 미리보기) ---------- */
-  .phone { position: relative; min-height: 100%; background: var(--bg); }
-  .screen {
+  .app {
+    position: relative; z-index: 1; max-width: 480px; margin: 0 auto;
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
-    padding-top: calc(12px + env(safe-area-inset-top, 0px));
-    padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
-    display: flex; flex-direction: column; gap: 12px;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+    display: flex; flex-direction: column; gap: 16px;
   }
-  .screen > * { flex-shrink: 0; min-width: 0; }
-  .caption { display: none; }
-  @media (min-width: 720px) {
-    body { background: var(--desk); }
-    .stage { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px 0; }
-    .phone { width: 390px; height: min(820px, calc(100vh - 72px)); min-height: 560px; border: 10px solid var(--bezel); border-radius: 46px; overflow: hidden; transform: translateZ(0); box-shadow: 0 30px 60px -24px rgba(13, 16, 32, .45); }
-    .screen { height: 100%; overflow-y: auto; scrollbar-width: none; padding-top: 40px; }
-    .screen::-webkit-scrollbar { display: none; }
-    .phone::before { content: ""; position: absolute; z-index: 40; top: 10px; left: 50%; transform: translateX(-50%); width: 92px; height: 24px; border-radius: 12px; background: var(--bezel); }
-    .caption { display: block; margin: 0; font-size: 12px; color: var(--ink-3); }
-    body.lock .screen { overflow: hidden; }
+  .app > * { min-width: 0; }
+
+  /* ---------- 줄조명 ---------- */
+  .lights { display: block; width: 100%; height: 56px; margin-bottom: -8px; overflow: visible; }
+  .lights .wire { fill: none; stroke: #4A3A55; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+  .lights .bulb { animation: twinkle 2.4s ease-in-out infinite alternate; }
+  @keyframes twinkle { 0% { opacity: .45; } 100% { opacity: 1; } }
+
+  /* ---------- 상단 · 네온 간판 ---------- */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .place { margin: 0; font-size: 12px; letter-spacing: .14em; color: var(--ink-3); }
+  .neon {
+    margin: 10px 0 0; font-family: var(--f-neon); font-weight: 400; font-size: clamp(36px, 12vw, 48px); line-height: 1.05; color: #FFE9C4; white-space: nowrap;
+    text-shadow: 0 0 2px #FFF6E0, 0 0 10px var(--tarp-o), 0 0 24px var(--tarp-r), 0 0 46px rgba(216, 56, 42, .7);
+    animation: flicker 7s linear infinite;
   }
-  body.lock { overflow: hidden; }
+  @keyframes flicker { 0%, 18%, 22%, 62%, 64%, 100% { opacity: 1; } 20%, 63% { opacity: .6; } }
+  .mode { flex: none; display: flex; gap: 2px; padding: 3px; border-radius: 12px; background: rgba(255, 255, 255, .06); border: 1px solid var(--line); }
+  .mode button { min-height: 36px; padding: 0 10px; border-radius: 9px; font-size: 13px; color: var(--ink-3); }
+  .mode button[aria-pressed="true"] { background: var(--bulb); color: var(--on-bulb); font-weight: 700; box-shadow: 0 0 14px var(--glow); }
 
-  /* ---------- 상단 ---------- */
-  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
-  .brand { display: flex; flex-direction: column; }
-  .brand small { font-size: 12px; color: var(--ink-3); font-weight: 500; }
-  .brand b { font-family: var(--f-sign); font-weight: 400; font-size: 24px; line-height: 1.1; }
-  .mode { display: flex; padding: 3px; gap: 2px; border-radius: 12px; background: var(--surface-2); }
-  .mode button { min-height: 36px; padding: 0 10px; border-radius: 9px; font-size: 13px; font-weight: 500; color: var(--ink-3); }
-  .mode button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 700; }
+  /* 운영 상태 — 불 켜진 간판 */
+  .board { border-radius: var(--r-l); padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 14px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .02)), var(--surface);
+    border: 1px solid var(--line); box-shadow: 0 20px 40px -24px rgba(0, 0, 0, .8); }
+  .board-head { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+  .board-head .when { display: flex; }
+  .sign { --c: var(--mint); flex: none; font-family: var(--f-neon); font-size: 24px; line-height: 1; padding: 10px 12px 9px; border-radius: 12px;
+    color: var(--c); border: 2px solid var(--c); text-shadow: 0 0 8px var(--c), 0 0 18px var(--c);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--c) 60%, transparent), inset 0 0 12px color-mix(in srgb, var(--c) 35%, transparent); }
+  .sign.soon { --c: var(--bulb); }
+  .sign.off { --c: var(--pink); animation: dying 4s linear infinite; }
+  @keyframes dying { 0%, 40%, 44%, 100% { opacity: .8; } 42% { opacity: .3; } }
+  .when { font-size: 13px; color: var(--ink-3); }
+  .say { margin: 2px 0 0; white-space: pre-line; font-size: 16px; font-weight: 500; line-height: 1.5; text-wrap: balance; }
+  .track { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+  .track i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--tarp-o), var(--bulb)); box-shadow: 0 0 10px var(--glow); }
+  .ticks { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-3); margin-top: 6px; }
+  .src { font-size: 12px; color: var(--ink-3); border-top: 1px dashed var(--line); padding-top: 12px; }
 
-  /* ---------- 밤 패널 ---------- */
-  .night { background: var(--night); color: var(--night-ink); border-radius: var(--r-l); padding: 20px; display: flex; flex-direction: column; gap: 14px; }
-  .night .when { font-size: 13px; color: var(--night-ink-2); }
-  .night .state { font-family: var(--f-sign); font-size: 32px; line-height: 1.1; color: var(--lamp); }
-  .night .say { white-space: pre-line; font-size: 16px; font-weight: 500; line-height: 1.5; text-wrap: balance; }
-  .track { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .14); overflow: hidden; }
-  .track i { display: block; height: 100%; border-radius: 3px; background: var(--lamp); }
-  .ticks { display: flex; justify-content: space-between; font-size: 12px; color: var(--night-ink-2); margin-top: 6px; }
-  .night .src { font-size: 12px; color: var(--night-ink-2); border-top: 1px solid rgba(255, 255, 255, .12); padding-top: 12px; }
+  /* ---------- 칠판 (현금 없이) ---------- */
+  .chalk { border-radius: var(--r-l); background: var(--chalk); border: 6px solid var(--wood);
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, .45), 0 16px 30px -20px rgba(0, 0, 0, .9); }
+  .chalk-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 72px; padding: 12px 14px 12px 18px; }
+  .chalk-row .t { flex: 1; min-width: 0; }
+  .chalk-row b { display: block; font-family: var(--f-brush); font-weight: 400; font-size: 30px; line-height: 1.1; color: var(--chalk-ink); }
+  .chalk-row .d { display: block; font-size: 13px; color: var(--chalk-ink-2); }
+  .sw { flex: none; width: 54px; height: 32px; border-radius: 16px; background: rgba(255, 255, 255, .14); position: relative; transition: background .2s, box-shadow .2s; }
+  .sw::after { content: ""; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: var(--chalk-ink); transition: transform .2s; }
+  .chalk-row[aria-pressed="true"] .sw { background: var(--mint); box-shadow: 0 0 14px var(--mint); }
+  .chalk-row[aria-pressed="true"] .sw::after { transform: translateX(22px); background: var(--chalk); }
 
-  /* ---------- 스위치 · 칩 ---------- */
-  .card { background: var(--surface); border-radius: var(--r-l); }
-  .switch-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 64px; padding: 12px 16px 12px 20px; }
-  .switch-row .t { flex: 1; min-width: 0; }
-  .switch-row b { display: block; font-size: 16px; font-weight: 700; }
-  .switch-row span.d { display: block; font-size: 13px; color: var(--ink-3); }
-  .sw { flex: none; width: 52px; height: 32px; border-radius: 16px; background: var(--line); position: relative; transition: background .2s; }
-  .sw::after { content: ""; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .2); transition: transform .2s; }
-  .switch-row[aria-pressed="true"] .sw { background: var(--ok); }
-  .switch-row[aria-pressed="true"] .sw::after { transform: translateX(20px); }
-
+  /* ---------- 필터 ---------- */
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .chips button { min-height: 36px; padding: 0 14px; border-radius: var(--r-s); background: var(--surface); font-size: 13px; font-weight: 500; color: var(--ink-2); border: 1px solid var(--line); }
-  .chips button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); font-weight: 700; }
+  .chips button { min-height: 36px; padding: 0 14px; border-radius: 999px; font-size: 13px; color: var(--ink-2); border: 1px solid var(--line); background: rgba(255, 255, 255, .04); }
+  .chips button[aria-pressed="true"] { background: var(--bulb); border-color: var(--bulb); color: var(--on-bulb); font-weight: 700; box-shadow: 0 0 16px var(--glow); }
 
-  /* ---------- 목록 ---------- */
-  .list-head { display: flex; align-items: baseline; justify-content: space-between; padding: 20px 20px 8px; }
-  .list-head h2 { margin: 0; font-size: 18px; font-weight: 700; }
-  .list-head span { font-size: 12px; color: var(--ink-3); }
-  .row { display: grid; grid-template-columns: 48px 1fr; gap: 6px 14px; width: 100%; padding: 14px 20px 16px; border-top: 1px solid var(--surface-2); }
-  .row:first-child { border-top: 0; }
-  .row:active { background: var(--surface-2); }
-  .plate { grid-row: span 3; width: 48px; height: 48px; border-radius: var(--r-m); background: var(--surface-2); display: grid; place-items: center; font-family: var(--f-sign); font-size: 22px; color: var(--ink-2); }
-  .row.dim .plate, .row.dim .name { opacity: .45; }
+  /* ---------- 천막 차양 + 포차 골목 ---------- */
+  .alley { border-radius: var(--r-l); overflow: hidden; background: var(--surface); border: 1px solid var(--line); }
+  .awning {
+    height: 46px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(0, 0, 0, .28)), repeating-linear-gradient(90deg, var(--tarp-r) 0 26px, var(--tarp-w) 26px 52px);
+    -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 13px) no-repeat, radial-gradient(circle at 13px 0, #000 12.5px, transparent 13px) bottom / 26px 13px repeat-x;
+            mask: linear-gradient(#000 0 0) top / 100% calc(100% - 13px) no-repeat, radial-gradient(circle at 13px 0, #000 12.5px, transparent 13px) bottom / 26px 13px repeat-x;
+  }
+  .alley-in { background: radial-gradient(90% 120px at 50% 0, rgba(255, 170, 80, .22), transparent 100%); padding: 6px 12px 12px; display: flex; flex-direction: column; gap: 10px; }
+  .alley-head { display: flex; align-items: baseline; justify-content: space-between; padding: 4px 6px 2px; }
+  .alley-head h2 { margin: 0; font-family: var(--f-brush); font-weight: 400; font-size: 34px; line-height: 1; color: var(--bulb-hot); text-shadow: 0 0 14px var(--glow); }
+  .alley-head span { font-size: 12px; color: var(--ink-3); }
+  .stalls { display: flex; flex-direction: column; gap: 10px; }
+
+  .stall { position: relative; display: grid; grid-template-columns: 50px 1fr; gap: 6px 14px; width: 100%; padding: 20px 14px 14px; border-radius: 16px; overflow: hidden;
+    background: linear-gradient(180deg, rgba(255, 170, 80, .10), rgba(255, 170, 80, 0) 60%), var(--surface-2); border: 1px solid rgba(255, 190, 110, .16); transition: transform .12s; }
+  .stall::before { /* 포차 미니 차양 */
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 12px;
+    background: repeating-linear-gradient(90deg, var(--tarp-o) 0 14px, var(--tarp-w) 14px 28px);
+    -webkit-mask: linear-gradient(#000 0 0) top / 100% 5px no-repeat, radial-gradient(circle at 7px 0, #000 6.5px, transparent 7px) 0 5px / 14px 7px repeat-x;
+            mask: linear-gradient(#000 0 0) top / 100% 5px no-repeat, radial-gradient(circle at 7px 0, #000 6.5px, transparent 7px) 0 5px / 14px 7px repeat-x;
+  }
+  .stall:active { transform: scale(.985); }
+  .stall.dark { background: var(--surface-2); border-color: var(--line); }
+  .stall.dark::before { background: repeating-linear-gradient(90deg, #4B3F57 0 14px, #2F2638 14px 28px); }
+  .stall.dark .name { color: var(--ink-3); }
+
+  /* 홍등 번호 */
+  .lantern { grid-row: span 3; align-self: start; position: relative; flex: none; width: 46px; height: 52px; margin: 4px 2px 0; display: grid; place-items: center;
+    border-radius: 46% 46% 42% 42% / 50%; font-family: var(--f-neon); font-size: 19px; color: var(--ink);
+    background: radial-gradient(circle at 50% 38%, #FF9A63 0%, var(--tarp-r) 55%, #7E1A14 100%);
+    box-shadow: 0 0 18px rgba(255, 90, 50, .6), inset 0 -6px 10px rgba(0, 0, 0, .3); animation: breathe 3.2s ease-in-out infinite alternate; }
+  .lantern::before, .lantern::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); background: #2B1B12; border-radius: 2px; }
+  .lantern::before { top: -4px; width: 22px; height: 6px; }
+  .lantern::after { bottom: -4px; width: 18px; height: 5px; }
+  .stall.dark .lantern, .lantern.unlit { background: radial-gradient(circle at 50% 38%, #4A3F55, #2C2436 70%); color: var(--ink-3); box-shadow: none; animation: none; }
+  @keyframes breathe { 0% { box-shadow: 0 0 12px rgba(255, 90, 50, .45), inset 0 -6px 10px rgba(0, 0, 0, .3); } 100% { box-shadow: 0 0 24px rgba(255, 110, 60, .8), inset 0 -6px 10px rgba(0, 0, 0, .3); } }
+
   .name-line { display: flex; align-items: center; gap: 8px; min-width: 0; }
-  .name { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .name { font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .st { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; white-space: nowrap; }
-  .st::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-  .st.open { color: var(--ok); } .st.closed, .st.early { color: var(--sold); }
+  .st::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+  .st.open { color: var(--mint); } .st.closed, .st.early { color: var(--pink); }
   .st.unknown, .st.off { color: var(--ink-3); }
+  .st.unknown::before, .st.off::before { box-shadow: none; }
   .st.unknown::before { background: transparent; border: 1.5px solid var(--off); }
   .line2 { font-size: 13px; color: var(--ink-3); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .line2 .so { color: var(--sold); font-weight: 500; }
-  .old { font-size: 11px; font-weight: 700; color: var(--sold); background: var(--sold-bg); border-radius: 4px; padding: 1px 5px; margin-left: 4px; }
+  .line2 .so { color: var(--pink); font-weight: 500; }
+  .old { font-size: 11px; font-weight: 700; color: var(--bulb); border: 1px solid currentColor; border-radius: 4px; padding: 0 5px; margin-left: 6px; }
 
-  /* 결제 칸 줄 — 현금 · 카드 · 이체 · 페이 고정 순서 */
-  .pays { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
-  .pay { display: flex; align-items: center; justify-content: center; gap: 3px; height: 28px; border-radius: var(--r-s); font-size: 12px; font-weight: 500; }
-  .pay.yes { background: var(--ok-bg); color: var(--ok); font-weight: 700; }
+  /* 결제 칸 — 현금 · 카드 · 이체 · 페이 고정 순서 */
+  .pays { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+  .pay { display: flex; align-items: center; justify-content: center; gap: 3px; height: 28px; border-radius: var(--r-s); font-size: 12px; font-weight: 500; border: 1px solid transparent; }
+  .pay.yes { color: var(--mint); background: var(--mint-bg); border-color: rgba(79, 240, 182, .55); font-weight: 700; text-shadow: 0 0 8px rgba(79, 240, 182, .6); box-shadow: 0 0 10px rgba(79, 240, 182, .18); }
   .pay.no { color: var(--off); text-decoration: line-through; }
   .pay.unk { color: var(--ink-3); border: 1px dashed var(--off); }
-  .pay.muted { opacity: .35; }
-  .empty { padding: 32px 20px; text-align: center; color: var(--ink-3); }
+  .pay.muted { opacity: .3; }
+  .empty { padding: 28px 12px; text-align: center; color: var(--ink-3); }
 
-  .foot { font-size: 12px; line-height: 1.7; color: var(--ink-3); padding: 4px 4px 0; }
-  .foot b { color: var(--ink-2); font-size: 13px; display: block; margin-bottom: 2px; }
+  .foot { font-size: 12px; line-height: 1.75; color: var(--ink-3); padding: 0 4px; }
+  .foot b { display: block; font-family: var(--f-brush); font-weight: 400; font-size: 24px; color: var(--ink-2); margin-bottom: 2px; }
 
   /* ---------- 시트 ---------- */
   .scrim { position: fixed; inset: 0; z-index: 20; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .22s; }
   .scrim.show { opacity: 1; pointer-events: auto; }
-  .sheet { position: fixed; z-index: 21; left: 50%; bottom: 0; width: 100%; max-width: 480px; max-height: 88%; overflow-y: auto;
-    background: var(--surface); border-radius: var(--r-sheet) var(--r-sheet) 0 0; box-shadow: 0 -12px 40px -16px rgba(0, 0, 0, .35);
-    padding: 10px max(20px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
+  .sheet { position: fixed; z-index: 21; left: 50%; bottom: 0; width: 100%; max-width: 480px; max-height: 88%; overflow-y: auto; overscroll-behavior: contain;
+    background: var(--surface); border-radius: 22px 22px 0 0; box-shadow: 0 -20px 50px -20px rgba(255, 140, 60, .35);
+    padding: 0 max(20px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
     transform: translate(-50%, 104%); transition: transform .28s cubic-bezier(.2, .8, .2, 1); }
   .sheet.show { transform: translate(-50%, 0); }
-  .grab { width: 36px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto 16px; }
+  .sheet > .awning { height: 34px; margin: 0 -20px 16px; }
   .s-head { display: flex; align-items: center; gap: 14px; }
-  .s-head .plate { width: 56px; height: 56px; font-size: 26px; grid-row: auto; }
+  .s-head .lantern { width: 54px; height: 60px; font-size: 22px; margin: 4px 0 0; }
   .s-head h3 { margin: 0; font-size: 22px; line-height: 1.3; font-weight: 700; }
-  .s-label { margin: 24px 0 8px; font-size: 13px; font-weight: 700; color: var(--ink-3); }
+  .s-label { margin: 22px 0 8px; font-size: 13px; font-weight: 700; color: var(--ink-3); }
   .paybig { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .paybig .pay { height: 52px; font-size: 15px; border-radius: var(--r-m); justify-content: space-between; padding: 0 16px; }
-  .paybig .pay.no { background: var(--surface-2); }
+  .paybig .pay.no { background: rgba(255, 255, 255, .03); }
   .menu { display: flex; flex-direction: column; }
-  .menu div { display: flex; align-items: center; justify-content: space-between; min-height: 44px; border-bottom: 1px solid var(--surface-2); font-size: 15px; }
+  .menu div { display: flex; align-items: center; justify-content: space-between; min-height: 44px; border-bottom: 1px dashed var(--line); font-size: 15px; }
   .menu div:last-child { border-bottom: 0; }
   .menu .x { color: var(--off); text-decoration: line-through; }
-  .tag { font-size: 12px; font-weight: 700; color: var(--sold); background: var(--sold-bg); padding: 2px 8px; border-radius: 6px; }
-  .src-tag { margin-top: 20px; padding: 12px 14px; border-radius: var(--r-m); background: var(--surface-2); font-size: 12px; color: var(--ink-2); }
-  .src-tag b { color: var(--ink); }
+  .tag { font-size: 12px; font-weight: 700; color: var(--pink); background: var(--pink-bg); border: 1px solid rgba(255, 94, 124, .5); padding: 2px 8px; border-radius: 6px; }
+  .src-tag { margin-top: 18px; padding: 12px 14px; border-radius: var(--r-m); background: var(--surface-2); font-size: 12px; color: var(--ink-2); }
+  .src-tag b { color: var(--bulb); }
   .btns { display: flex; gap: 8px; margin-top: 16px; }
   .btn { flex: 1; height: 52px; border-radius: var(--r-m); font-size: 16px; font-weight: 700; text-align: center; }
-  .btn.main { background: var(--ink); color: var(--surface); }
-  .btn.main:disabled { background: var(--line); color: var(--ink-3); cursor: default; }
-  .btn.sub { background: var(--surface-2); color: var(--ink-2); }
-  .s-title { margin: 4px 0; font-size: 22px; font-weight: 700; line-height: 1.35; }
+  .btn.main { background: var(--bulb); color: var(--on-bulb); box-shadow: 0 0 18px var(--glow); }
+  .btn.main:disabled { background: var(--surface-2); color: var(--ink-3); box-shadow: none; cursor: default; }
+  .btn.sub { background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); }
+  .s-title { margin: 0 0 4px; font-size: 22px; font-weight: 700; line-height: 1.35; }
   .s-desc { margin: 0 0 8px; font-size: 13px; color: var(--ink-3); }
-  .opt { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 52px; font-size: 16px; border-bottom: 1px solid var(--surface-2); }
+  .opt { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 52px; font-size: 16px; border-bottom: 1px dashed var(--line); }
   .opt:last-child { border-bottom: 0; }
-  .radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; }
-  .opt[aria-checked="true"] .radio { border-color: var(--ink); background: var(--ink); }
-  .opt[aria-checked="true"] .radio::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--surface); }
+  .radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--off); display: grid; place-items: center; }
+  .opt[aria-checked="true"] .radio { border-color: var(--bulb); background: var(--bulb); box-shadow: 0 0 10px var(--glow); }
+  .opt[aria-checked="true"] .radio::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--on-bulb); }
   .toast { position: fixed; z-index: 30; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 12px); opacity: 0; pointer-events: none;
-    width: max-content; max-width: calc(100% - 32px); padding: 12px 16px; border-radius: var(--r-m); background: var(--ink); color: var(--surface); font-size: 14px; font-weight: 500;
-    box-shadow: 0 12px 30px -12px rgba(0, 0, 0, .4); transition: .24s; }
+    width: max-content; max-width: calc(100% - 32px); padding: 12px 16px; border-radius: var(--r-m); background: var(--bulb); color: var(--on-bulb); font-size: 14px; font-weight: 700;
+    box-shadow: 0 0 24px var(--glow); transition: .24s; }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
   .hl { animation: hl 1.6s ease; }
-  @keyframes hl { 0%, 60% { background: var(--ok-bg); } 100% { background: transparent; } }
-  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+  @keyframes hl { 0%, 60% { box-shadow: 0 0 0 2px var(--bulb), 0 0 24px var(--glow); } 100% { box-shadow: none; } }
+  body.lock { overflow: hidden; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
-<div class="stage">
-  <div class="phone">
-    <main class="screen" id="screen">
-      <header class="top">
-        <div class="brand"><small>서문시장 야시장</small><b>오늘의 매대판</b></div>
-        <div class="mode" role="group" aria-label="보는 시각">
-          <button id="m-now" data-m="now" aria-pressed="true">오늘</button>
-          <button id="m-demo" data-m="demo" aria-pressed="false">영업일 시연</button>
-        </div>
-      </header>
+<main class="app">
+  <svg class="lights" id="lights" viewBox="0 0 400 56" preserveAspectRatio="none" aria-hidden="true"></svg>
 
-      <section class="night" aria-label="야시장 운영 상태">
-        <div>
-          <div class="when" id="when"></div>
-          <div class="state" id="state"></div>
-        </div>
-        <p class="say" id="say" style="margin:0"></p>
-        <div>
-          <div class="track"><i id="bar"></i></div>
-          <div class="ticks mono" id="ticks"></div>
-        </div>
-        <div class="src">장사 시간 18:00–23:00 · 금 · 토 · 일 · 12월까지 · 상인회 공식 공지 연결 전</div>
-      </section>
-
-      <div class="card">
-        <button class="switch-row" id="cashless" aria-pressed="false">
-          <span class="t"><b>현금 없이 왔어요</b><span class="d">카드 · 이체 · 페이 되는 매대만 볼게요</span></span>
-          <span class="sw" aria-hidden="true"></span>
-        </button>
+  <header>
+    <div class="top">
+      <p class="place">대구 서문시장 야시장</p>
+      <div class="mode" role="group" aria-label="보는 시각">
+        <button data-m="now" aria-pressed="true">오늘</button>
+        <button data-m="demo" aria-pressed="false">영업일 시연</button>
       </div>
+    </div>
+    <h1 class="neon">오늘의 매대판</h1>
+  </header>
 
-      <div class="chips" id="chips" role="group" aria-label="필터">
-        <button data-f="all" aria-pressed="true">전체</button>
-        <button data-f="open" aria-pressed="false">영업 중</button>
-        <button data-f="card" aria-pressed="false">카드</button>
-        <button data-f="transfer" aria-pressed="false">이체</button>
-        <button data-f="pay" aria-pressed="false">페이</button>
-        <button data-f="nosold" aria-pressed="false">품절 없음</button>
-      </div>
+  <section class="board" aria-label="야시장 운영 상태">
+    <div class="board-head">
+      <div class="when" id="when"></div>
+      <span class="sign" id="sign"></span>
+      <p class="say" id="say"></p>
+    </div>
+    <div>
+      <div class="track"><i id="bar"></i></div>
+      <div class="ticks mono" id="ticks"></div>
+    </div>
+    <div class="src">장사 시간 18:00–23:00 · 금 · 토 · 일 · 12월까지 · 상인회 공식 공지 연결 전</div>
+  </section>
 
-      <section class="card" aria-labelledby="listTitle">
-        <div class="list-head"><h2 id="listTitle">매대</h2><span id="count"></span></div>
-        <div id="list"></div>
-      </section>
-
-      <div class="foot">
-        <b>이 화면은 이렇게 만들어요</b>
-        상인이 장사 전에 올린 사진과 한마디를 AI가 정리했어요. 품절은 상인이 직접 누른 것만 보여 드려요.<br>
-        매대는 번호순이에요. 입력을 자주 해도 위로 올라가지 않아요.<br>
-        이체는 되는지만 알려 드리고 계좌번호는 보여 주지 않아요.<br>
-        예시 매대 12곳 · 수업 예시 가상 데이터
-      </div>
-    </main>
-
-    <div class="scrim" id="scrim"></div>
-    <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div>
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="chalk">
+    <button class="chalk-row" id="cashless" aria-pressed="false">
+      <span class="t"><b>현금 없이 왔어요</b><span class="d">카드 · 이체 · 페이 되는 매대만 볼게요</span></span>
+      <span class="sw" aria-hidden="true"></span>
+    </button>
   </div>
-  <p class="caption">모바일 화면 미리보기 · 390px</p>
-</div>
+
+  <div class="chips" id="chips" role="group" aria-label="필터">
+    <button data-f="all" aria-pressed="true">전체</button>
+    <button data-f="open" aria-pressed="false">영업 중</button>
+    <button data-f="card" aria-pressed="false">카드</button>
+    <button data-f="transfer" aria-pressed="false">이체</button>
+    <button data-f="pay" aria-pressed="false">페이</button>
+    <button data-f="nosold" aria-pressed="false">품절 없음</button>
+  </div>
+
+  <section class="alley" aria-labelledby="alleyTitle">
+    <div class="awning" aria-hidden="true"></div>
+    <div class="alley-in">
+      <div class="alley-head"><h2 id="alleyTitle">오늘의 포차</h2><span id="count"></span></div>
+      <div class="stalls" id="list"></div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <b>이 화면은 이렇게 만들어요</b>
+    상인이 장사 전에 올린 사진과 한마디를 AI가 정리했어요. 품절은 상인이 직접 누른 것만 보여 드려요.<br>
+    매대는 번호순이에요. 입력을 자주 해도 위로 올라가지 않아요.<br>
+    이체는 되는지만 알려 드리고 계좌번호는 보여 주지 않아요.<br>
+    예시 매대 12곳 · 수업 예시 가상 데이터
+  </div>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
+/* 줄조명: 두 번 처진 전선 위에 전구를 고르게 배치 */
+(function lights() {
+  const svg = document.getElementById("lights"), NS = "http://www.w3.org/2000/svg";
+  const segs = [[[-10, 6], [100, 50], [200, 16]], [[200, 16], [300, 50], [410, 6]]];
+  const q = (a, c, b, t) => [(1 - t) ** 2 * a[0] + 2 * (1 - t) * t * c[0] + t * t * b[0], (1 - t) ** 2 * a[1] + 2 * (1 - t) * t * c[1] + t * t * b[1]];
+  const wire = document.createElementNS(NS, "path");
+  wire.setAttribute("class", "wire"); wire.setAttribute("d", "M-10 6 Q100 50 200 16 Q300 50 410 6");
+  svg.appendChild(wire);
+  const colors = ["#FFD27A", "#FFD27A", "#FF8A4C", "#FFF2CC", "#FF5E7C", "#FFD27A", "#4FF0B6"];
+  let k = 0;
+  segs.forEach((s) => {
+    for (let i = 1; i <= 7; i++) {
+      const [x, y] = q(s[0], s[1], s[2], i / 8), c = colors[k % colors.length];
+      const g = document.createElementNS(NS, "g");
+      g.setAttribute("class", "bulb"); g.style.animationDelay = `${((k * 0.37) % 2.4).toFixed(2)}s`;
+      g.innerHTML = `<ellipse cx="${x}" cy="${y + 8}" rx="8" ry="10" fill="${c}" opacity=".2"/><ellipse cx="${x}" cy="${y + 8}" rx="2.8" ry="4" fill="${c}"/><rect x="${x - 1.6}" y="${y + 1}" width="3.2" height="3.4" fill="#4A3A55"/>`;
+      svg.appendChild(g); k++;
+    }
+  });
+})();
+
 /* 운영 일정 — 요일: 1110test 분석(금 · 토 · 일, 12월까지) · 시간: 1111test 밸류체인(18:00~23:00, 최신 파일) — decision_log D-01 */
 const SCHED = { 5: [1080, 1380], 6: [1080, 1380], 0: [1080, 1380] };
 const SEASON_END = new Date(2026, 11, 31, 23, 59);
@@ -282,7 +357,7 @@ const STALLS = [
 ];
 const PAY = [["cash", "현금"], ["card", "카드"], ["transfer", "이체"], ["pay", "페이"]];
 const ST = { open: "영업 중", early: "일찍 닫음", closed: "오늘 휴무", unknown: "입력 전" };
-const STALE = 90; // 분 — 오래된 정보 기준 (재료에 없음 · no-request W07)
+const STALE = 90; // 분 — 오래된 정보 기준 (재료에 없음 · decision_log D-11)
 
 const S = { mode: "now", cashless: false, f: "all" };
 const $ = (s) => document.querySelector(s);
@@ -302,28 +377,26 @@ function visible(s, mk) {
 }
 
 let MK;
-function renderNight(d) {
+function renderBoard(d) {
   const mk = MK, sch = mk.sch || mk.nextSch || [1080, 1380];
   $("#when").textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 ${DAY[d.getDay()]}요일 · ${hm(mk.mins)}${S.mode === "demo" ? " (시연)" : ""}`;
   $("#ticks").innerHTML = `<span>${hm(sch[0])} 개장</span><span>${hm(sch[1])} 마감</span>`;
   const openN = STALLS.filter((s) => s.status === "open").length, okN = STALLS.filter((s) => s.status === "open" && cashlessOk(s)).length;
-  let state, say, w = 0;
+  let sign, cls = "", say, w = 0;
   if (mk.kind === "open") {
-    state = "영업 중"; w = (mk.mins - sch[0]) / (sch[1] - sch[0]);
-    say = S.cashless ? `현금 없이도 ${okN}곳에서 살 수 있어요` : `지금 ${openN}곳이 장사 중이에요
-마감까지 ${dur(sch[1] - mk.mins)}`;
+    sign = "영업중"; w = (mk.mins - sch[0]) / (sch[1] - sch[0]);
+    say = S.cashless ? `현금 없이도 ${okN}곳에서 살 수 있어요` : `지금 ${openN}곳이 불을 켰어요\n마감까지 ${dur(sch[1] - mk.mins)}`;
   } else if (mk.kind === "before") {
-    state = "개장 전"; say = `오늘 ${hm(sch[0])}에 열어요 · ${dur(sch[0] - mk.mins)} 남았어요
-결제 수단은 미리 볼 수 있어요`;
+    sign = "곧 열어요"; cls = "soon"; say = `오늘 ${hm(sch[0])}에 열어요\n${dur(sch[0] - mk.mins)} 남았어요`;
   } else if (mk.kind === "season") {
-    state = "운영 끝"; say = "올해 야시장 운영이 끝났어요";
+    sign = "운영 끝"; cls = "off"; say = "올해 야시장 운영이 끝났어요";
   } else {
     const nx = mk.next, when = mk.inDays === 1 ? "내일" : `${nx.getMonth() + 1}/${nx.getDate()}`;
-    state = mk.kind === "after" ? "영업 끝" : "쉬는 날"; w = mk.kind === "after" ? 1 : 0;
-    say = `${mk.kind === "after" ? "오늘 장사는 끝났어요" : `오늘(${DAY[d.getDay()]})은 야시장이 쉬어요`}
-다음 개장 ${when}(${DAY[nx.getDay()]}) ${hm(mk.nextSch[0])}`;
+    sign = mk.kind === "after" ? "영업 끝" : "쉬는 날"; cls = "off"; w = mk.kind === "after" ? 1 : 0;
+    say = `${mk.kind === "after" ? "오늘 장사는 끝났어요" : `오늘(${DAY[d.getDay()]})은 야시장이 쉬어요`}\n다음 개장 ${when}(${DAY[nx.getDay()]}) ${hm(mk.nextSch[0])}`;
   }
-  $("#state").textContent = state; $("#say").textContent = say; $("#bar").style.width = `${w * 100}%`;
+  const el = $("#sign"); el.textContent = sign; el.className = `sign ${cls}`;
+  $("#say").textContent = say; $("#bar").style.width = `${w * 100}%`;
 }
 
 function pays(s, big) {
@@ -349,33 +422,33 @@ function renderList(mk) {
   const shown = STALLS.filter((s) => visible(s, mk));
   $("#count").textContent = `${shown.length}곳 · 번호순`;
   $("#list").innerHTML = shown.length ? shown.map((s) => `
-    <button class="row ${live(mk) && s.status === "open" ? "" : "dim"}" id="r-${s.no}" data-no="${s.no}">
-      <span class="plate">${s.no}</span>
+    <button class="stall ${live(mk) && s.status === "open" ? "" : "dark"}" id="r-${s.no}" data-no="${s.no}">
+      <span class="lantern">${s.no}</span>
       <span class="name-line"><span class="name">${s.name}</span>${stTag(s, mk)}</span>
       <span class="line2">${line2(s, mk)}</span>
       <span class="pays">${pays(s)}</span>
     </button>`).join("") : '<div class="empty">조건에 맞는 매대가 없어요. 필터를 바꿔 보세요.</div>';
 }
 
-function render() { const d = nowDate(); MK = market(d); renderNight(d); renderList(MK); }
+function render() { const d = nowDate(); MK = market(d); renderBoard(d); renderList(MK); }
 
 /* 시트 */
 const sheet = $("#sheet"), scrim = $("#scrim");
-function openSheet(h) { sheet.innerHTML = '<div class="grab"></div>' + h; sheet.scrollTop = 0; scrim.classList.add("show"); sheet.classList.add("show"); document.body.classList.add("lock"); }
+function openSheet(h) { sheet.innerHTML = '<div class="awning" aria-hidden="true"></div>' + h; sheet.scrollTop = 0; scrim.classList.add("show"); sheet.classList.add("show"); document.body.classList.add("lock"); }
 function closeSheet() { scrim.classList.remove("show"); sheet.classList.remove("show"); document.body.classList.remove("lock"); }
 scrim.addEventListener("click", closeSheet);
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSheet(); });
 
 function detail(no) {
   const s = STALLS.find((x) => x.no === no); if (!s) return;
-  const mk = MK, on = live(mk), sold = new Set(on && s.soldout ? s.soldout : []);
+  const mk = MK, on = live(mk), lit = on && s.status === "open", sold = new Set(on && s.soldout ? s.soldout : []);
   const menu = s.menu.map((m) => `<div><span class="${sold.has(m) ? "x" : ""}">${m}</span>${sold.has(m) ? '<span class="tag">품절</span>' : ""}</div>`).join("");
   let src;
   if (!on) src = `야시장이 ${mk.kind === "before" ? "아직 열기 전" : "쉬는 날"}이에요. 결제 수단과 메뉴는 <b>지난 영업일 입력</b> 기준이에요.`;
   else if (s.at == null) src = "오늘은 상인 입력이 아직 없어요. 결제 수단은 매대에서 직접 확인해 주세요.";
   else { const ago = mk.mins - s.at; src = `<b>AI 정리</b> · 상인 입력 <span class="mono">${hm(s.at)}</span> · ${dur(ago)} 전${ago > STALE ? " · 오래된 정보예요" : ""}${s.note ? ` · “${s.note}”` : ""}`; }
   openSheet(`
-    <div class="s-head"><span class="plate">${s.no}</span><div><h3 id="sheetTitle">${s.name}</h3>${stTag(s, mk)}</div></div>
+    <div class="s-head"><span class="lantern ${lit ? "" : "unlit"}">${s.no}</span><div><h3 id="sheetTitle">${s.name}</h3>${stTag(s, mk)}</div></div>
     <div class="s-label">결제 수단</div><div class="paybig">${pays(s, true)}</div>
     <div class="s-label">메뉴</div><div class="menu">${menu}</div>
     <div class="src-tag">${src}</div>
@@ -401,7 +474,7 @@ sheet.addEventListener("click", (e) => {
 function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2400); }
 
 /* 이벤트 */
-$("#list").addEventListener("click", (e) => { const r = e.target.closest(".row"); if (r) detail(r.dataset.no); });
+$("#list").addEventListener("click", (e) => { const r = e.target.closest(".stall"); if (r) detail(r.dataset.no); });
 $("#cashless").addEventListener("click", (e) => { S.cashless = !S.cashless; e.currentTarget.setAttribute("aria-pressed", S.cashless); render(); });
 $("#chips").addEventListener("click", (e) => {
   const b = e.target.closest("button"); if (!b) return;
