@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>매대판 유저 플로우</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Nanum+Brush+Script&family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+  /* 디자인 시스템: design/design-system.md v2 "포차 골목의 밤" 그대로.
+     레이아웃: 골목길 하나를 따라 내려가는 세로 흐름(왼쪽 전선 레일 + 단계 카드), 단계마다 갈림길 칩.
+     넓은 화면은 흐름 옆에 화면 미니어처. 어두운 단일 테마(의도). */
+  :root {
+    --sky-0: #07060F; --surface: #1A1325; --surface-2: #241A31; --line: #3B2D4A;
+    --ink: #FFF3E2; --ink-2: #DCCAB6; --ink-3: #A592A9;
+    --bulb: #FFD27A; --bulb-hot: #FFF2CC; --glow: rgba(255, 184, 77, .5);
+    --tarp-r: #D8382A; --tarp-o: #F2842B; --tarp-w: #F4E3C8;
+    --mint: #4FF0B6; --mint-bg: rgba(79, 240, 182, .12);
+    --pink: #FF5E7C; --pink-bg: rgba(255, 94, 124, .13);
+    --off: #6E6280; --on-bulb: #2A1A08;
+    --f-neon: "Black Han Sans", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    --f-brush: "Nanum Brush Script", "Noto Sans KR", "Malgun Gothic", cursive;
+    --f-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+    color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { color: var(--ink); font: 400 15px/1.6 var(--f-body); word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased;
+    background: radial-gradient(120% 50% at 50% -10%, #2B1A4F, transparent 60%), radial-gradient(80% 40% at 50% 110%, #3A170F, transparent 70%), var(--sky-0); background-attachment: fixed; }
+  button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--bulb); outline-offset: 3px; border-radius: 8px; }
+  .mono { font-family: var(--f-mono); letter-spacing: 0; }
+
+  .wrap { max-width: 1040px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 64px; display: flex; flex-direction: column; gap: 40px; }
+  .wrap > * { min-width: 0; }
+
+  /* 머리 */
+  .lights { display: block; width: 100%; height: 50px; }
+  .lights .wire { fill: none; stroke: #4A3A55; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+  .lights .bulb { animation: tw 2.4s ease-in-out infinite alternate; }
+  @keyframes tw { from { opacity: .45; } to { opacity: 1; } }
+  header { display: flex; flex-direction: column; gap: 10px; margin-top: -8px; }
+  .eyebrow { margin: 0; font-size: 12px; letter-spacing: .14em; color: var(--ink-3); }
+  h1 { margin: 0; font-family: var(--f-neon); font-weight: 400; font-size: clamp(34px, 8vw, 56px); line-height: 1.05; color: #FFE9C4;
+    text-shadow: 0 0 2px #FFF6E0, 0 0 10px var(--tarp-o), 0 0 26px var(--tarp-r), 0 0 48px rgba(216, 56, 42, .6); }
+  .lede { margin: 0; max-width: 62ch; color: var(--ink-2); }
+  .src { margin: 0; font-size: 12px; color: var(--ink-3); }
+
+  h2 { margin: 0 0 14px; font-family: var(--f-brush); font-weight: 400; font-size: 36px; line-height: 1; color: var(--bulb-hot); text-shadow: 0 0 14px var(--glow); }
+  h2 small { font-family: var(--f-body); font-size: 13px; color: var(--ink-3); text-shadow: none; margin-left: 8px; }
+
+  /* 범례 */
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; color: var(--ink-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .k { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+  .k.scr { border: 2px solid var(--bulb); box-shadow: 0 0 8px var(--glow); }
+  .k.dec { transform: rotate(45deg) scale(.8); border: 2px solid var(--pink); }
+  .k.go { background: var(--mint); border-radius: 50%; }
+  .k.back { background: var(--bulb); border-radius: 50%; }
+  .k.stop { background: var(--pink); border-radius: 50%; }
+  .k.later { border: 1.5px dashed var(--off); }
+
+  /* 진입점 */
+  .entries { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .entry { position: relative; padding: 26px 16px 16px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; display: flex; flex-direction: column; gap: 6px; }
+  .entry::before { content: ""; position: absolute; inset: 0 0 auto; height: 12px; background: repeating-linear-gradient(90deg, var(--tarp-o) 0 14px, var(--tarp-w) 14px 28px);
+    -webkit-mask: linear-gradient(#000 0 0) top / 100% 5px no-repeat, radial-gradient(circle at 7px 0, #000 6.5px, transparent 7px) 0 5px / 14px 7px repeat-x;
+            mask: linear-gradient(#000 0 0) top / 100% 5px no-repeat, radial-gradient(circle at 7px 0, #000 6.5px, transparent 7px) 0 5px / 14px 7px repeat-x; }
+  .entry.later { border-style: dashed; background: transparent; }
+  .entry.later::before { background: repeating-linear-gradient(90deg, #4B3F57 0 14px, #2F2638 14px 28px); }
+  .entry b { font-size: 17px; }
+  .entry p { margin: 0; font-size: 13px; color: var(--ink-2); }
+  .entry .to { font-size: 12px; color: var(--ink-3); }
+  .badge { align-self: flex-start; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; border: 1px solid currentColor; }
+  .badge.must { color: var(--mint); } .badge.later { color: var(--ink-3); border-style: dashed; }
+
+  /* 경로 보기 */
+  .paths { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 18px; }
+  .paths span { font-size: 13px; color: var(--ink-3); margin-right: 4px; }
+  .paths button { min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255, 255, 255, .04); font-size: 13px; color: var(--ink-2); }
+  .paths button[aria-pressed="true"] { background: var(--bulb); border-color: var(--bulb); color: var(--on-bulb); font-weight: 700; box-shadow: 0 0 16px var(--glow); }
+  .path-note { flex-basis: 100%; font-size: 13px; color: var(--ink-2); min-height: 1.6em; }
+
+  /* 흐름 + 미니어처 */
+  .flow-wrap { display: grid; grid-template-columns: 1fr; gap: 24px; }
+  @media (min-width: 900px) { .flow-wrap { grid-template-columns: minmax(0, 1fr) 300px; align-items: start; } .minis { position: sticky; top: 16px; } }
+
+  .flow { position: relative; display: flex; flex-direction: column; gap: 14px; padding-left: 34px; }
+  .flow::before { content: ""; position: absolute; left: 11px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(var(--bulb), var(--tarp-o) 60%, var(--pink)); opacity: .5; }
+  .step { position: relative; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); padding: 14px 16px; transition: opacity .2s, box-shadow .2s, border-color .2s; }
+  .step::before { content: ""; position: absolute; left: -30px; top: 16px; width: 16px; height: 16px; border-radius: 50%; background: var(--sky-0); border: 2px solid var(--bulb); box-shadow: 0 0 10px var(--glow); }
+  .step.dec { background: linear-gradient(180deg, rgba(255, 94, 124, .07), transparent), var(--surface); border-color: rgba(255, 94, 124, .35); }
+  .step.dec::before { border-radius: 3px; transform: rotate(45deg) scale(.85); border-color: var(--pink); box-shadow: 0 0 10px rgba(255, 94, 124, .5); }
+  .step.end::before { background: var(--mint); border-color: var(--mint); box-shadow: 0 0 12px var(--mint); }
+  .s-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .s-no { font-family: var(--f-neon); font-size: 18px; color: var(--bulb); min-width: 1.6em; }
+  .step.dec .s-no { color: var(--pink); }
+  .s-title { font-size: 16px; font-weight: 700; }
+  .s-scr { font-family: var(--f-mono); font-size: 11px; color: var(--bulb); border: 1px solid rgba(255, 210, 122, .5); border-radius: 4px; padding: 0 5px; }
+  .s-us { font-size: 11px; color: var(--ink-3); }
+  .s-desc { margin: 6px 0 0; font-size: 13px; color: var(--ink-2); }
+  .brs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 6px; margin-top: 10px; }
+  .br { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: 10px; background: var(--surface-2); font-size: 13px; transition: opacity .2s, box-shadow .2s; }
+  .br::before { content: ""; flex: none; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 8px var(--mint); }
+  .br.back::before { background: var(--bulb); box-shadow: 0 0 8px var(--bulb); }
+  .br.stop::before { background: var(--pink); box-shadow: 0 0 8px var(--pink); }
+  .br.later { background: transparent; border: 1px dashed var(--off); color: var(--ink-3); }
+  .br.later::before { background: var(--off); box-shadow: none; }
+  .br b { font-weight: 700; }
+  .br .arrow { color: var(--ink-3); }
+
+  /* 경로 강조 */
+  body[data-path] .step, body[data-path] .br { opacity: .28; }
+  body[data-path="ok"] [data-p~="ok"], body[data-path="blk"] [data-p~="blk"] { opacity: 1; }
+  body[data-path="ok"] .step[data-p~="ok"], body[data-path="blk"] .step[data-p~="blk"] { border-color: var(--bulb); box-shadow: 0 0 0 1px var(--bulb), 0 0 24px -6px var(--glow); }
+  body[data-path="ok"] .br[data-p~="ok"], body[data-path="blk"] .br[data-p~="blk"] { box-shadow: 0 0 0 1px var(--bulb); }
+  .tag-n { font-family: var(--f-mono); font-size: 11px; color: var(--on-bulb); background: var(--bulb); border-radius: 4px; padding: 0 5px; margin-left: auto; display: none; }
+  body[data-path="ok"] [data-p~="ok"] > .s-top .tag-n.ok, body[data-path="blk"] [data-p~="blk"] > .s-top .tag-n.blk { display: inline-block; }
+
+  /* 화면 미니어처 */
+  .minis { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  @media (min-width: 900px) { .minis { grid-template-columns: 1fr; } }
+  .mini { border-radius: 18px; background: #0E0B18; border: 1px solid var(--line); padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .mini-h { display: flex; justify-content: space-between; align-items: baseline; }
+  .mini-h b { font-size: 14px; } .mini-h .s-scr { font-size: 10px; }
+  .m-neon { font-family: var(--f-neon); font-size: 18px; color: #FFE9C4; text-shadow: 0 0 8px var(--tarp-o); }
+  .m-sign { align-self: flex-start; font-family: var(--f-neon); font-size: 13px; color: var(--mint); border: 1.5px solid var(--mint); border-radius: 6px; padding: 3px 6px 2px; box-shadow: 0 0 8px rgba(79, 240, 182, .5); }
+  .m-chalk { border: 3px solid #5A3B22; background: #15241F; border-radius: 8px; padding: 4px 8px; font-family: var(--f-brush); font-size: 18px; color: #F3F0E4; }
+  .m-awn { height: 14px; border-radius: 6px 6px 0 0; background: repeating-linear-gradient(90deg, var(--tarp-r) 0 10px, var(--tarp-w) 10px 20px); }
+  .m-row { display: grid; grid-template-columns: 22px 1fr; gap: 6px; align-items: center; padding: 6px; border-radius: 8px; background: var(--surface-2); font-size: 11px; }
+  .m-lan { width: 20px; height: 22px; border-radius: 45%; background: radial-gradient(circle at 50% 38%, #FF9A63, var(--tarp-r) 60%, #7E1A14); box-shadow: 0 0 8px rgba(255, 90, 50, .6); }
+  .m-pays { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-top: 3px; }
+  .m-pays i { height: 8px; border-radius: 3px; background: var(--mint-bg); border: 1px solid rgba(79, 240, 182, .6); }
+  .m-pays i.n { background: none; border-color: transparent; border-bottom: 1px solid var(--off); }
+  .m-pays i.u { background: none; border: 1px dashed var(--off); }
+  .m-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .m-grid i { height: 18px; border-radius: 5px; font-style: normal; font-size: 10px; display: grid; place-items: center; color: var(--mint); background: var(--mint-bg); border: 1px solid rgba(79, 240, 182, .6); }
+  .m-opt { font-size: 11px; padding: 4px 0; border-bottom: 1px dashed var(--line); color: var(--ink-2); }
+  .m-btn { height: 20px; border-radius: 6px; background: var(--bulb); color: var(--on-bulb); font-size: 10px; font-weight: 700; display: grid; place-items: center; }
+  .m-toast { align-self: center; font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 8px; background: var(--bulb); color: var(--on-bulb); box-shadow: 0 0 14px var(--glow); }
+  .mini p { margin: 0; font-size: 12px; color: var(--ink-3); }
+
+  /* 갈림길 표 */
+  .tbl { overflow-x: auto; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); }
+  table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px dashed var(--line); }
+  th { font-size: 12px; color: var(--ink-3); font-weight: 500; background: var(--surface-2); }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child { font-family: var(--f-neon); color: var(--bulb); white-space: nowrap; }
+  td .why { color: var(--ink-3); font-size: 12px; }
+  .chk { color: var(--pink); font-weight: 700; }
+
+  /* 빠진 흐름 */
+  .gaps { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+  .gap { padding: 14px; border-radius: 14px; border: 1px dashed var(--off); display: flex; flex-direction: column; gap: 4px; }
+  .gap b { font-size: 14px; } .gap p { margin: 0; font-size: 13px; color: var(--ink-3); }
+  .gap .id { font-family: var(--f-mono); font-size: 11px; color: var(--ink-3); }
+
+  footer { font-size: 12px; color: var(--ink-3); }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <svg class="lights" id="lights" viewBox="0 0 400 50" preserveAspectRatio="none" aria-hidden="true"></svg>
+    <header>
+      <p class="eyebrow">대구 서문시장 야시장 · 오늘의 매대판</p>
+      <h1>매대판 유저 플로우</h1>
+      <p class="lede">금요일 저녁, 현금 없이 처음 온 직장인 A가 입구 QR을 찍고 포차를 골라 결제하기까지. 화면 4개, 갈림길 9개, 그리고 아직 비어 있는 길을 한 장에 그렸어요.</p>
+      <p class="src">근거: spec/시나리오.md (US-01~05) · spec/user_flow.md · index.html · spec/decision_log.md · 수업 예시 가상 데이터</p>
+    </header>
+  </div>
+
+  <div class="legend" aria-label="범례">
+    <span><i class="k scr"></i>화면 · 행동</span>
+    <span><i class="k dec"></i>갈림길</span>
+    <span><i class="k go"></i>다음 단계로</span>
+    <span><i class="k back"></i>목록으로 돌아감</span>
+    <span><i class="k stop"></i>여기서 끝</span>
+    <span><i class="k later"></i>[나중] · 확인 필요</span>
+  </div>
+
+  <section aria-labelledby="h-entry">
+    <h2 id="h-entry">들어오는 길</h2>
+    <div class="entries">
+      <div class="entry"><span class="badge must">필수 · US-02</span><b>입구 QR 안내판</b><p>야시장 입구에 도착해서 찍어요.</p><span class="to">→ ① 메인</span></div>
+      <div class="entry"><span class="badge must">필수 · US-04</span><b>매대 앞 QR</b><p>줄 서기 직전에 찍으면 그 매대 상세가 바로 열려요. <span class="mono">#stall-05</span></p><span class="to">→ ⑤ 매대 상세</span></div>
+      <div class="entry later"><span class="badge later">나중 · US-01</span><b>출발 전 링크</b><p>퇴근 전에 오늘 여는지 보는 길. 현장 QR 말고는 경로가 없어 확인 필요.</p><span class="to">→ ① 메인</span></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-flow">
+    <h2 id="h-flow">흐름<small>단계를 따라 내려가요</small></h2>
+    <div class="paths" role="group" aria-label="직장인 A의 경로 강조">
+      <span>A의 경로 보기</span>
+      <button id="p-all" data-path="" aria-pressed="true">전체</button>
+      <button id="p-ok" data-path="ok" aria-pressed="false">잘 풀린 경로</button>
+      <button id="p-blk" data-path="blk" aria-pressed="false">막히는 경로</button>
+      <div class="path-note" id="pathNote" aria-live="polite"></div>
+    </div>
+
+    <div class="flow-wrap">
+      <ol class="flow" style="list-style:none;margin:0">
+        <li class="step" data-p="ok">
+          <div class="s-top"><span class="s-no">①</span><span class="s-title">메인을 열어요</span><span class="s-scr">S1</span><span class="s-us">US-01 · US-02</span><span class="tag-n ok">A-1</span></div>
+          <p class="s-desc">줄조명 아래 네온 제목, 운영 상태 간판(영업중 · 곧 열어요 · 쉬는 날 · 영업 끝), 장사 시간 18:00–23:00 · 상인회 공식 공지 연결 전.</p>
+        </li>
+        <li class="step dec" data-p="ok">
+          <div class="s-top"><span class="s-no">◆</span><span class="s-title">야시장이 지금 여나요?</span><span class="s-us">B1 · B2 · B3</span></div>
+          <div class="brs">
+            <div class="br" data-p="ok"><span><b>영업 중</b> <span class="arrow">→ ②</span><br>민트 간판 · 마감까지 남은 시간</span></div>
+            <div class="br"><span><b>개장 전</b> <span class="arrow">→ ②</span><br>개장 시각 · 결제 수단 미리 보기</span></div>
+            <div class="br stop"><span><b>쉬는 날 · 영업 끝</b><br>다음 개장일 · 시각 → 돌아감</span></div>
+          </div>
+        </li>
+        <li class="step" data-p="ok">
+          <div class="s-top"><span class="s-no">②</span><span class="s-title">현금 없이 왔어요 켜기</span><span class="s-scr">S1 칠판</span><span class="s-us">US-02 · B4</span><span class="tag-n ok">A-2</span></div>
+          <p class="s-desc">카드 · 이체 · 페이 중 하나라도 되는 포차만 남고, 결제 칸의 현금은 흐려져요.</p>
+        </li>
+        <li class="step" data-p="ok blk">
+          <div class="s-top"><span class="s-no">③</span><span class="s-title">필터 고르기 → 포차 목록</span><span class="s-scr">S1 목록</span><span class="s-us">US-02</span><span class="tag-n blk">A-5 · 다른 포차 고르기</span></div>
+          <p class="s-desc">영업 중 · 카드 · 이체 · 페이 · 품절 없음. 목록은 번호순, 포차마다 홍등 번호와 결제 칸 4개(현금 · 카드 · 이체 · 페이).</p>
+        </li>
+        <li class="step" data-p="ok blk">
+          <div class="s-top"><span class="s-no">④</span><span class="s-title">포차를 눌러요</span><span class="s-us">US-04</span><span class="tag-n ok">A-3 · 05 막창구이</span><span class="tag-n blk">A-1 · 06 호떡 (매대 앞 QR)</span></div>
+        </li>
+        <li class="step" data-p="ok blk">
+          <div class="s-top"><span class="s-no">⑤</span><span class="s-title">매대 상세 시트</span><span class="s-scr">S2</span><span class="s-us">US-04</span></div>
+          <p class="s-desc">천막 차양 아래 홍등 번호, 결제 수단 2 × 2(가능 ✓ · 불가 취소선 · 미확인 ?), 메뉴와 품절 꼬리표, "AI 정리 · 상인 입력 hh:mm".</p>
+        </li>
+        <li class="step dec" data-p="ok blk">
+          <div class="s-top"><span class="s-no">◆</span><span class="s-title">여기서 살 수 있나요?</span><span class="s-us">B5 · B6 · B7 · B8</span></div>
+          <div class="brs">
+            <div class="br" data-p="ok"><span><b>카드 · 이체 · 페이 ✓</b> <span class="arrow">→ ⑥</span></span></div>
+            <div class="br" data-p="blk"><span><b>미확인 (입력 전)</b> <span class="arrow">→ 매대에서 직접 확인 → ⑥</span></span></div>
+            <div class="br back"><span><b>현금만</b> <span class="arrow">→ ③ 목록</span></span></div>
+            <div class="br back"><span><b>오늘 휴무 · 일찍 닫음</b> <span class="arrow">→ ③ 목록</span></span></div>
+            <div class="br back"><span><b>먹고 싶은 메뉴 품절</b> <span class="arrow">→ ③ 목록</span></span></div>
+            <div class="br back"><span><b>90분 넘은 정보</b> <span class="arrow">→ 참고만 · 매대에서 확인</span></span></div>
+          </div>
+        </li>
+        <li class="step" data-p="ok blk">
+          <div class="s-top"><span class="s-no">⑥</span><span class="s-title">줄 서기 · 결제</span><span class="tag-n ok">A-4 · A-5</span><span class="tag-n blk">A-2 · 현금만이라 함</span></div>
+        </li>
+        <li class="step dec" data-p="ok blk">
+          <div class="s-top"><span class="s-no">◆</span><span class="s-title">결제가 됐나요?</span><span class="s-us">B9</span></div>
+          <div class="brs">
+            <div class="br" data-p="ok"><span><b>성공</b> <span class="arrow">→ 구매 완료</span></span></div>
+            <div class="br stop" data-p="blk"><span><b>화면 정보와 다름</b> <span class="arrow">→ ⑦</span></span></div>
+          </div>
+        </li>
+        <li class="step" data-p="blk">
+          <div class="s-top"><span class="s-no">⑦</span><span class="s-title">정보가 달라요 → 신고 시트</span><span class="s-scr">S3</span><span class="s-us">US-05</span><span class="tag-n blk">A-3</span></div>
+          <p class="s-desc">결제 수단 · 영업 여부 · 품절 · 다른 문제 중 하나를 고르면 '알리기'가 켜져요. 매대 상세의 버튼으로도 바로 와요.</p>
+        </li>
+        <li class="step" data-p="blk">
+          <div class="s-top"><span class="s-no">⑧</span><span class="s-title">토스트 → 목록으로</span><span class="s-scr">S4</span><span class="s-us">US-05</span><span class="tag-n blk">A-4</span></div>
+          <p class="s-desc">"알려 주셔서 고마워요. 확인하고 고칠게요" · 누가 고칠지는 미정(D-04). 다시 ③에서 다른 포차를 골라요.</p>
+        </li>
+        <li class="step end" data-p="ok">
+          <div class="s-top"><span class="s-no">✓</span><span class="s-title">구매 완료</span><span class="tag-n ok">끝</span></div>
+        </li>
+      </ol>
+
+      <aside class="minis" aria-label="화면 미니어처">
+        <div class="mini">
+          <div class="mini-h"><b>메인</b><span class="s-scr">S1</span></div>
+          <span class="m-neon">오늘의 매대판</span>
+          <span class="m-sign">영업중</span>
+          <span class="m-chalk">현금 없이 왔어요</span>
+          <div><div class="m-awn"></div>
+            <div class="m-row"><span class="m-lan"></span><span>05 막창구이<div class="m-pays"><i></i><i></i><i></i><i></i></div></span></div>
+          </div>
+          <p>운영 상태 · 현금 없이 · 필터 · 포차 목록</p>
+        </div>
+        <div class="mini">
+          <div class="mini-h"><b>매대 상세</b><span class="s-scr">S2</span></div>
+          <div class="m-awn"></div>
+          <div class="m-grid"><i>현금 ✓</i><i>카드 ✓</i><i>이체 ✓</i><i>페이 ✓</i></div>
+          <div class="m-opt">막창 · <span style="color:var(--pink)">대창 품절</span> · 주먹밥</div>
+          <div class="m-btn">확인</div>
+          <p>결제 수단 · 메뉴 · 출처 · 정보가 달라요</p>
+        </div>
+        <div class="mini">
+          <div class="mini-h"><b>신고</b><span class="s-scr">S3</span></div>
+          <div class="m-opt">결제 수단이 달라요 ●</div>
+          <div class="m-opt">영업 여부가 달라요</div>
+          <div class="m-opt">품절 정보가 달라요</div>
+          <div class="m-btn">알리기</div>
+          <p>하나를 골라야 '알리기'가 켜져요</p>
+        </div>
+        <div class="mini">
+          <div class="mini-h"><b>알림</b><span class="s-scr">S4</span></div>
+          <span class="m-toast">확인하고 고칠게요</span>
+          <p>2.4초 뒤 사라지고 목록으로</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-branch">
+    <h2 id="h-branch">갈림길 9개<small>조건마다 화면이 보여 주는 것</small></h2>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>#</th><th>이럴 때</th><th>화면은</th><th>A는 다음에</th><th>근거</th></tr></thead>
+        <tbody>
+          <tr><td>B1</td><td>야시장 영업 중</td><td>민트 "영업중" 간판 · "지금 N곳이 불을 켰어요" · 마감까지 남은 시간</td><td>목록 보기</td><td class="why">US-01 인수 1 · 2</td></tr>
+          <tr><td>B2</td><td>개장 전</td><td>전구색 "곧 열어요" · 개장 시각 · 남은 시간, 결제 수단은 지난 영업일 기준</td><td>결제 수단 미리 보기</td><td class="why">US-01 인수 4</td></tr>
+          <tr><td>B3</td><td>쉬는 날 · 영업 끝</td><td>핑크 간판 · 다음 개장일 · 시각, 매대는 모두 "쉬는 날"</td><td>돌아감</td><td class="why">US-01 예외 · 오늘 안 나옴</td></tr>
+          <tr><td>B4</td><td>현금 없이 왔어요 켬</td><td>카드 · 이체 · 페이 되는 포차만, 현금 칸 흐리게</td><td>남은 포차 고르기</td><td class="why">US-02 인수 2</td></tr>
+          <tr><td>B5</td><td>매대 입력 전</td><td>"휴무인지 아직 몰라요", 결제 칸 모두 점선 ?</td><td>매대에서 직접 확인</td><td class="why">US-02 · 04 예외 · 정보 없음</td></tr>
+          <tr><td>B6</td><td>오늘 휴무 · 일찍 닫음</td><td>불 꺼진 홍등 · 회색 천막 · 핑크 상태 글자</td><td>다른 포차</td><td class="why">US-02 예외 · 오늘 안 나옴</td></tr>
+          <tr><td>B7</td><td>메뉴 품절</td><td>목록 "OO 품절"(핑크), 상세 메뉴 취소선 + 품절 꼬리표</td><td>다른 메뉴 · 다른 포차</td><td class="why">US-03 인수 2 · US-04 예외 · 품절</td></tr>
+          <tr><td>B8</td><td>마지막 입력이 90분 넘음</td><td>"N시간 전 정보" 꼬리표</td><td>참고만 · 매대에서 확인</td><td class="why">US-03 예외 · <span class="chk">기준 시간 확인 필요</span> (D-11)</td></tr>
+          <tr><td>B9</td><td>정보가 실제와 다름</td><td>신고 시트 → 기록 → "확인하고 고칠게요"</td><td>목록으로 돌아감</td><td class="why">US-05 · <span class="chk">처리자 미정</span> (D-04)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-gap">
+    <h2 id="h-gap">아직 없는 길</h2>
+    <div class="gaps">
+      <div class="gap"><span class="id">G1 · US-01 나중</span><b>출발 전에 들어오는 길</b><p>현장 QR 말고 경로가 없어요. 확인 필요.</p></div>
+      <div class="gap"><span class="id">G2 · US-03 나중</span><b>대기 시간 보고 줄 고르기</b><p>3위 아이디어라 화면에서 뺐어요 (D-03).</p></div>
+      <div class="gap"><span class="id">G3 · US-05</span><b>고쳐졌는지 알려 주기</b><p>처리자 미정, 회신 방식은 재료에 없어요.</p></div>
+      <div class="gap"><span class="id">G4 · US-05</span><b>이미 결제를 못 한 사람</b><p>해 줄 수 있는 것이 재료에 없어요. 확인 필요.</p></div>
+      <div class="gap"><span class="id">G5</span><b>외국어 화면</b><p>다국어는 별도 기회 O4, MVP 포함 미정.</p></div>
+    </div>
+  </section>
+
+  <footer>수업 예시 · 가상 데이터 · 디자인 시스템 v2 "포차 골목의 밤"</footer>
+</div>
+
+<script>
+(function lights() {
+  const svg = document.getElementById("lights"), NS = "http://www.w3.org/2000/svg";
+  const segs = [[[-10, 4], [100, 44], [200, 12]], [[200, 12], [300, 44], [410, 4]]];
+  const q = (a, c, b, t) => [(1 - t) ** 2 * a[0] + 2 * (1 - t) * t * c[0] + t * t * b[0], (1 - t) ** 2 * a[1] + 2 * (1 - t) * t * c[1] + t * t * b[1]];
+  const w = document.createElementNS(NS, "path"); w.setAttribute("class", "wire"); w.setAttribute("d", "M-10 4 Q100 44 200 12 Q300 44 410 4"); svg.appendChild(w);
+  const col = ["#FFD27A", "#FF8A4C", "#FFF2CC", "#FF5E7C", "#FFD27A", "#4FF0B6"]; let k = 0;
+  segs.forEach((s) => { for (let i = 1; i <= 7; i++) { const [x, y] = q(s[0], s[1], s[2], i / 8), c = col[k % col.length];
+    const g = document.createElementNS(NS, "g"); g.setAttribute("class", "bulb"); g.style.animationDelay = `${((k * .37) % 2.4).toFixed(2)}s`;
+    g.innerHTML = `<ellipse cx="${x}" cy="${y + 7}" rx="7" ry="9" fill="${c}" opacity=".2"/><ellipse cx="${x}" cy="${y + 7}" rx="2.6" ry="3.6" fill="${c}"/>`; svg.appendChild(g); k++; } });
+})();
+
+const NOTES = {
+  "": "",
+  ok: "잘 풀린 경로: 입구 QR → 영업 중 → 현금 없이 켜기 → 05 막창구이 → 카드 ✓ → 줄 서기 → 카드 결제 완료",
+  blk: "막히는 경로: 매대 앞 QR → 06 호떡 상세, 결제 칸 모두 ? → 상인에게 물으니 현금만 → 정보가 달라요 신고 → 목록에서 다른 포차",
+};
+document.querySelector(".paths").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-path]"); if (!b) return;
+  const p = b.dataset.path;
+  if (p) document.body.dataset.path = p; else delete document.body.dataset.path;
+  document.querySelectorAll(".paths button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+  document.getElementById("pathNote").textContent = NOTES[p];
+});
+</script>
+</body>
+</html>
