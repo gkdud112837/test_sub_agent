@@ -1,0 +1,80 @@
+{
+  "_설명": "dry-run(가짜 LLM) 응답. 에이전트별 호출 순서대로 쓰고, 목록보다 많이 부르면 마지막 응답을 다시 쓴다. 첫 회차에서 R1~R5가 한 번씩 일어나도록 짰다. {agent}, {section}은 실행 시 채운다.",
+  "delay_sec": 0.2,
+  "research": "[DRY-RUN] {agent} 검색 메모: 실제 검색은 하지 않았다.",
+  "analyst": {
+    "section_md": "[DRY-RUN] {section} 본문이다. 실제 분석이 아니라 흐름 확인용 문장이다.\n\n- 핵심 숫자는 data.csv에 있다.",
+    "data": [
+      {"metric": "{agent} 샘플 지표", "period": "2025", "value": "10", "unit": "%", "source_id": "S1"},
+      {"metric": "{agent} 샘플 지표", "period": "2026F", "value": "-5", "unit": "%", "source_id": "S1"},
+      {"metric": "{agent} 샘플 지표", "period": "2027F", "value": "-12", "unit": "%", "source_id": "S1"}
+    ],
+    "sources": [{"id": "S1", "title": "DRY-RUN 가짜 출처", "where": "fixtures/dry_run.json", "as_of": "2026-11-23"}],
+    "conclusions": ["{agent} 결론 1", "{agent} 결론 2", "{agent} 결론 3"],
+    "shortage_candidates": [{"name": "{agent} 후보 부품", "reason": "DRY-RUN 이유"}],
+    "escalations": [],
+    "log_summary": "[DRY-RUN] {agent} 분석"
+  },
+  "analyst_overrides": {
+    "lta-analyst": {
+      "1": {"escalations": [{"kind": "no_data", "detail": "LTA 선수금 규모 공시 데이터 없음"}]}
+    }
+  },
+  "responses": {
+    "report-writer": [
+      {
+        "report_md": "# IT 하드웨어 2027 연간전망 (DRY-RUN)\n\n## 2026년 리뷰\n> 사이드 헤드라인\n\n본문\n\n<!-- section:market-reviewer -->\n\n## 1. 디바이스 역성장\n> 사이드 헤드라인\n\n본문 [확인필요]\n\n<!-- section:demand-analyst -->\n\n## 2. LTA\n\n<!-- section:lta-analyst -->\n\n## 3. IT 인플레이션 다음은?\n\n<!-- section:inflation-analyst -->\n\n## 글로벌 Peer Valuation\n\n<!-- section:valuation-analyst -->\n\n## Compliance Notice\n\nDRY-RUN 고지문",
+        "questions": [{"to_agent": "demand-analyst", "question": "2027F 폴더블 출하 근거가 없다. 보강해 달라."}],
+        "log_summary": "[DRY-RUN] 초안 1판 · 질문 1개"
+      },
+      {
+        "report_md": "# IT 하드웨어 2027 연간전망 (DRY-RUN)\n\n## 2026년 리뷰\n> 사이드 헤드라인\n\n본문\n\n<!-- section:market-reviewer -->\n\n## 1. 디바이스 역성장\n> 사이드 헤드라인\n\n보강된 본문\n\n<!-- section:demand-analyst -->\n\n## 2. LTA\n\n<!-- section:lta-analyst -->\n\n## 3. IT 인플레이션 다음은?\n\n<!-- section:inflation-analyst -->\n\n## 글로벌 Peer Valuation\n\n<!-- section:valuation-analyst -->\n\n## 쇼티지 부품/기업 선별\n\nDRY-RUN 선별 기준\n\n## Compliance Notice\n\nDRY-RUN 고지문",
+        "questions": [],
+        "log_summary": "[DRY-RUN] 초안 수정판"
+      }
+    ],
+    "chart-maker": [
+      {
+        "charts": [
+          {"id": "demand-yoy", "title": "세트 출하 YoY (DRY-RUN)", "kind": "bar", "section": "demand-analyst", "unit": "%", "x": ["2025", "2026F", "2027F"], "series": [{"name": "샘플", "values": [10, -5, -12]}], "source": "자료: DRY-RUN 가짜 출처"},
+          {"id": "broken", "title": "길이가 안 맞는 차트", "kind": "line", "section": "inflation-analyst", "unit": "%", "x": ["2025", "2026F"], "series": [{"name": "샘플", "values": [1, 2, 3]}], "source": "자료: DRY-RUN"}
+        ],
+        "log_summary": "[DRY-RUN] 차트 1판"
+      },
+      {
+        "charts": [
+          {"id": "demand-yoy", "title": "세트 출하 YoY (DRY-RUN)", "kind": "bar", "section": "demand-analyst", "unit": "%", "x": ["2025", "2026F", "2027F"], "series": [{"name": "샘플", "values": [10, -5, -12]}], "source": "자료: DRY-RUN 가짜 출처"},
+          {"id": "inflation-cost", "title": "부품 가격 지표 (DRY-RUN)", "kind": "line", "section": "inflation-analyst", "unit": "%", "x": ["2025", "2026F", "2027F"], "series": [{"name": "샘플", "values": [10, -5, -12]}], "source": "자료: DRY-RUN 가짜 출처"}
+        ],
+        "log_summary": "[DRY-RUN] 차트 수정판"
+      }
+    ],
+    "fact-checker": [
+      {
+        "verdict": "fail",
+        "issues": [
+          {"route": "R3", "target": "inflation-analyst", "location": "3. IT 인플레이션", "problem": "총원가 인상률 근거 없음", "fix_hint": "출처 보강", "severity": "blocker"},
+          {"route": "R2", "target": "chart-maker", "location": "inflation-cost", "problem": "차트가 빠짐", "fix_hint": "data로 다시 그림", "severity": "blocker"}
+        ],
+        "log_summary": "[DRY-RUN] 1회차 반려"
+      },
+      {"verdict": "pass", "issues": [], "log_summary": "[DRY-RUN] 통과"}
+    ],
+    "logic-reviewer": [
+      {
+        "verdict": "fail",
+        "issues": [
+          {"route": "R1", "target": "report-writer", "location": "표지", "problem": "쇼티지 선별 섹션이 없음", "fix_hint": "선별 섹션 추가", "severity": "blocker"}
+        ],
+        "log_summary": "[DRY-RUN] 1회차 반려"
+      },
+      {
+        "verdict": "pass",
+        "issues": [
+          {"route": "R1", "target": "report-writer", "location": "요약", "problem": "문장이 길다", "fix_hint": "줄이기", "severity": "minor"}
+        ],
+        "log_summary": "[DRY-RUN] 통과 (minor 1)"
+      }
+    ]
+  }
+}

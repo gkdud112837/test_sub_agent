@@ -1,0 +1,17 @@
+{
+  "sources_header": "| id | 출처 | 위치 | 기준일 |\n|---|---|---|---|\n",
+  "sources_row": "| {id} | {title} | {where} | {as_of} |\n",
+  "handoff_conclusions": "## 결론\n",
+  "handoff_candidates": "\n## 쇼티지 후보\n",
+  "questions_header": "# R4 질문\n\n",
+  "questions_empty": "- 없음\n",
+  "charts_header": "# 차트\n\n",
+  "charts_skipped": "\n## 그리지 못한 스펙\n",
+  "review_header": "# {name} · {round}회차 · {verdict}\n\n| 심각도 | 경로 | 대상 | 위치 | 문제 | 고칠 방향 |\n|---|---|---|---|---|---|\n",
+  "r5_header": "## 메인 세션 확정 사항 (R5)",
+  "r5_out_of_scope": "범위 밖이므로 다루지 않는다",
+  "r5_no_data": "데이터를 구할 수 없으므로 [확인필요]로 둔다",
+  "final_charts_appendix": "\n## 부록: 차트\n\n",
+  "final_unresolved": "\n## [확인필요] 목록\n\n",
+  "analysis_failed": "분석 실패"
+}

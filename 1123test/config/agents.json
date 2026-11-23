@@ -1,0 +1,61 @@
+{
+  "reference_source": "SK증권 IT하드웨어 2027 연간전망(비교 기준)",
+  "workspace_dirs": {
+    "brief": "00_brief",
+    "analysis": "10_analysis",
+    "draft": "20_draft",
+    "review": "30_review",
+    "final": "40_final"
+  },
+  "phases": [
+    {"id": "P0", "label": "범위 정의", "parallel": false, "agents": ["main"]},
+    {"id": "P1", "label": "분석", "parallel": true, "agents": ["market-reviewer", "demand-analyst", "lta-analyst", "inflation-analyst", "valuation-analyst"]},
+    {"id": "P2", "label": "작성", "parallel": true, "agents": ["report-writer", "chart-maker"]},
+    {"id": "P3", "label": "검토", "parallel": true, "agents": ["fact-checker", "logic-reviewer"]},
+    {"id": "P4", "label": "통합·발간", "parallel": false, "agents": ["main"]}
+  ],
+  "main": {"name": "main", "label": "메인 세션", "role": "brief 배치 · 경로 판정 · 발간 (LLM 아님)"},
+  "analysts": [
+    {
+      "name": "market-reviewer",
+      "label": "2026 리뷰",
+      "section": "2026년 리뷰: IT 인플레이션으로 부품 전반의 판가 인상, 그러나 오더컷/CR 우려 확대",
+      "pages": "p.3",
+      "task": "2026년 IT 하드웨어 주가 흐름을 리뷰한다. 상반기 상승 요인(패키징기판·MLCC 쇼티지, 가격 인상 기대)과 하반기 하락 요인(AI Capex 지속성 우려, 디바이스 출하 역성장, 세트 원가 부담에 따른 오더컷/CR 가능성)을 정리한다. 세트별 2026년 YoY 판매량 전망치의 연초 대비 변화, 주요 IT 하드웨어 종목의 YTD 주가 상승률을 data에 담는다. (Q1)"
+    },
+    {
+      "name": "demand-analyst",
+      "label": "테마1 디바이스 역성장",
+      "section": "1. 디바이스 역성장",
+      "pages": "p.4–5",
+      "task": "세트별(스마트폰·TV·PC·노트북·태블릿·폴더블) 출하량 2025·2026F·2027F와 YoY를 정리하고, 오더컷이 본격화되는 시점, 주요 세트사의 부품 주문 조정, 제품 가격 인상과 판매량 감소의 관계를 분석한다. (Q2)"
+    },
+    {
+      "name": "lta-analyst",
+      "label": "테마2 LTA",
+      "section": "2. LTA (Long-Term Agreement)",
+      "pages": "p.6–7",
+      "task": "LTA가 공급자에게 비대칭 계약인 이유, 과거 LTA 사례(스마트폰 부품·기판·배터리)와 그 결말, 2027년에 점검할 4가지(① 선수금이 실제로 들어오는지 ② 그 돈이 누구 몫으로 남는지 ③ 가격을 올려 받는지 ④ 업계 증설의 합이 수요를 넘는지)를 다룬다. 기판 업체별 제품 포트폴리오(FCBGA·FCCSP·SiP·SLP·HDI·MLB 등)도 정리한다. (Q3)"
+    },
+    {
+      "name": "inflation-analyst",
+      "label": "테마3 IT 인플레이션",
+      "section": "3. IT 인플레이션 다음은?",
+      "pages": "p.8",
+      "task": "칩플레이션과 IT 인플레이션의 차이, 부품별 가격 인상(메인보드·기판·MLCC·외장재·부자재), 스마트폰·PC 총원가 인상률, 재고축적 사이클(부품가격 상승 → 재고 확충 → 주가 상승), 세트사의 CR 요구, CR 압박을 받는 부품과 방어하는 부품을 분석한다. (Q4)"
+    },
+    {
+      "name": "valuation-analyst",
+      "label": "Peer Valuation",
+      "section": "글로벌 Peer Valuation",
+      "pages": "p.9–12",
+      "task": "카메라 모듈·렌즈, 기판, MLCC 등 업종별 국내외 업체의 시가총액, 부채비율, OPM·PER·PBR (2025·2026F·2027F)을 표로 정리한다. data의 metric은 '업체명 지표' 형식(예: '삼성전기 PER')으로, period는 연도로 쓴다. section_md에는 표와 짧은 해설을 넣는다."
+    }
+  ],
+  "writer": {"name": "report-writer", "label": "본문·요약 작성", "prompt": "writer", "schema": "writer"},
+  "charter": {"name": "chart-maker", "label": "차트·표", "prompt": "chart", "schema": "chart"},
+  "reviewers": [
+    {"name": "fact-checker", "label": "숫자 대조", "prompt": "fact", "schema": "review", "output": "facts", "needs_data": true},
+    {"name": "logic-reviewer", "label": "논리·컴플라이언스", "prompt": "logic", "schema": "review", "output": "logic", "needs_data": false}
+  ]
+}

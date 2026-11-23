@@ -1,0 +1,21 @@
+{
+  "brief": "# 작업 지시서\n{brief}",
+  "analyst_task": "# 네가 맡은 섹션\n제목: {section} ({pages})\n할 일: {task}",
+  "research_request": "섹션: {section}\n할 일: {task}\n가장 최근 자료를 우선한다.",
+  "research_notes": "# 검색으로 모은 자료\n{notes}",
+  "prev_section": "# 이전에 쓴 섹션\n{text}",
+  "prev_data": "# 이전 data.csv\n{text}",
+  "rework_reason": "# 다시 작업하는 이유 ({route})\n{items}",
+  "rework_tail": "지적된 부분을 고치고 나머지는 유지한 전체 결과를 다시 낸다.",
+  "writer_order_item": "- {section} ({pages}) → 섹션 끝에 `<!-- section:{name} -->`",
+  "writer_order": "# 섹션 순서\n{items}",
+  "analysis_bundle": "# 애널리스트 결과 (공유 작업 공간 {dir}/)\n{bundle}",
+  "analysis_data": "# 애널리스트 데이터 (공유 작업 공간 {dir}/)\n{bundle}",
+  "prev_draft": "# 이전 초안\n{text}",
+  "prev_charts": "# 이전 차트 스펙\n{text}",
+  "draft": "# 리포트 초안 ({path})\n{text}",
+  "chart_specs": "# 차트 스펙 ({path})\n{text}",
+  "r4_note": "질문한 애널리스트 섹션이 보강됐다. 반영해 다시 써라.",
+  "r3_note": "R3로 애널리스트 섹션·데이터가 수정됐다. 반영하라.",
+  "json_retry": "직전 응답이 올바른 JSON이 아니었다. 스키마에 맞는 JSON만 다시 내라."
+}

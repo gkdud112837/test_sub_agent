@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>산업리포트 에이전트</title>
+<link rel="stylesheet" href="/web/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="eyebrow">Industry Report Agents · Local</div>
+    <h1>IT 하드웨어 2027 연간전망 작성</h1>
+  </div>
+  <div class="chips">
+    <span class="chip" id="model">모델 -</span>
+    <span class="chip" id="key">API 키 -</span>
+  </div>
+  <div class="controls">
+    <label class="toggle"><input type="checkbox" id="dry"> dry-run (가짜 응답)</label>
+    <label class="toggle"><input type="checkbox" id="search"> Google 검색</label>
+    <button id="runBtn" type="button">실행</button>
+  </div>
+</header>
+
+<main>
+  <div class="status" id="status" role="status">대기</div>
+
+  <section aria-label="페이즈별 에이전트" class="board" id="board"></section>
+  <div class="legend">
+    <span><i class="dot waiting"></i>대기</span>
+    <span><i class="dot running"></i>실행 중</span>
+    <span><i class="dot done"></i>완료</span>
+    <span><i class="dot failed"></i>실패</span>
+    <span><b class="route">R1</b> 되돌아온 경로</span>
+  </div>
+
+  <div class="split">
+    <section class="card log-card" aria-label="진행 로그">
+      <h2>진행 로그</h2>
+      <ol class="log" id="log"></ol>
+    </section>
+
+    <section class="card panel" aria-label="결과">
+      <div class="panel-head">
+        <div class="tabs" role="tablist">
+          <button role="tab" data-tab="report" class="on" type="button">최종 리포트</button>
+          <button role="tab" data-tab="files" type="button">공유 작업 공간</button>
+          <button role="tab" data-tab="runlog" type="button">실행 기록</button>
+        </div>
+        <select id="runSel" aria-label="실행 선택"></select>
+      </div>
+      <div class="view" id="view-report"><p class="muted">실행을 고르거나 새로 실행하세요.</p></div>
+      <div class="view hidden" id="view-files">
+        <ul class="files" id="fileList"></ul>
+        <div class="viewer" id="viewer"><p class="muted">왼쪽에서 파일을 고르세요.</p></div>
+      </div>
+      <div class="view hidden" id="view-runlog"></div>
+    </section>
+  </div>
+</main>
+<script src="/web/app.js"></script>
+</body>
+</html>

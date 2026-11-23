@@ -1,0 +1,97 @@
+:root{
+  --bg:#f6f4f1; --panel:#fff; --ink:#1d1b19; --muted:#6b645d; --line:#ddd6ce; --chip:#f1ede8;
+  --brand:#b3122a; --run:#2f6f9f; --ok:#2f7a55; --bad:#c0392b; --wait:#a8a099; --back:#d0213c;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#151312; --panel:#1f1c1a; --ink:#efeae4; --muted:#a59d94; --line:#3a3531; --chip:#2a2623;
+    --brand:#ff5a6e; --run:#6fb0e0; --ok:#74c296; --bad:#ff7b6b; --wait:#6e6760; --back:#ff6b7f;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.6 "Pretendard","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+code,pre,.mono{font-family:ui-monospace,Consolas,monospace}
+.muted{color:var(--muted)}
+.hidden{display:none!important}
+
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:14px 24px;padding:16px 24px;border-top:4px solid var(--brand);background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{flex:1 1 280px}
+.eyebrow{font-size:11.5px;letter-spacing:.12em;color:var(--brand);font-weight:700;text-transform:uppercase}
+h1{margin:2px 0 0;font-size:20px}
+h2{margin:0 0 10px;font-size:14px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:var(--chip);border-radius:99px;padding:3px 10px;font-size:12.5px}
+.chip.warn{color:var(--bad)}
+.controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.toggle{display:flex;gap:6px;align-items:center;font-size:13px;cursor:pointer}
+button{font:inherit;cursor:pointer}
+#runBtn{background:var(--brand);color:#fff;border:0;border-radius:8px;padding:8px 20px;font-weight:700}
+#runBtn:disabled{opacity:.45;cursor:not-allowed}
+
+main{max-width:1320px;margin:0 auto;padding:18px 24px 48px}
+.status{font-size:13.5px;margin-bottom:12px;color:var(--muted)}
+.status.err{color:var(--bad);font-weight:700}
+.status.ok{color:var(--ok);font-weight:700}
+
+.board{display:grid;grid-template-columns:150px 1.4fr 1fr 1fr 150px;gap:12px;align-items:start}
+.phase{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px}
+.phase.par{border-style:dashed}
+.phase h3{margin:0 0 8px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:6px}
+.agent{border:1px solid var(--line);border-left:4px solid var(--wait);border-radius:8px;padding:7px 9px;margin-top:8px;background:var(--panel);transition:border-color .2s}
+.agent .nm{font-family:ui-monospace,Consolas,monospace;font-size:12px;font-weight:700;word-break:break-all}
+.agent .lb{font-size:11.5px;color:var(--muted)}
+.agent .meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;align-items:center;font-size:11px}
+.agent .st{color:var(--muted)}
+.agent.running{border-left-color:var(--run)}
+.agent.running .st{color:var(--run);font-weight:700}
+.agent.done{border-left-color:var(--ok)}
+.agent.failed{border-left-color:var(--bad)}
+.agent.failed .st{color:var(--bad);font-weight:700}
+.agent.running .st::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--run);margin-right:4px;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.route{display:inline-block;font-size:10.5px;font-weight:800;color:var(--back);border:1px solid var(--back);border-radius:4px;padding:0 4px;font-style:normal}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--muted);margin:10px 0 18px}
+.legend span{display:flex;gap:6px;align-items:center}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px}
+.dot.waiting{background:var(--wait)} .dot.running{background:var(--run)} .dot.done{background:var(--ok)} .dot.failed{background:var(--bad)}
+
+.split{display:grid;grid-template-columns:minmax(280px,1fr) 2.2fr;gap:14px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.log{list-style:none;margin:0;padding:0;max-height:620px;overflow:auto;font:12px/1.65 ui-monospace,Consolas,monospace}
+.log li{white-space:pre-wrap;border-bottom:1px dashed var(--line);padding:2px 0}
+.log li.r{color:var(--back)}
+.log li.p{font-weight:700;margin-top:6px}
+
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.tabs{display:flex;gap:4px}
+.tabs button{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:5px 12px;font-size:13px}
+.tabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+select{font:inherit;font-size:13px;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+
+#view-report{max-height:720px;overflow:auto;padding:0 6px}
+#view-report h1{font-size:22px;border-bottom:3px solid var(--brand);padding-bottom:6px}
+#view-report h2{font-size:17px;margin:26px 0 8px;border-left:4px solid var(--brand);padding-left:8px}
+#view-report blockquote{margin:0 0 10px;padding:6px 12px;background:var(--chip);border-radius:6px;color:var(--muted);font-weight:600}
+#view-report img{max-width:100%;border:1px solid var(--line);border-radius:6px;background:#fff}
+#view-report table,#view-runlog table{border-collapse:collapse;width:100%;font-size:12.5px;margin:8px 0}
+#view-report th,#view-report td,#view-runlog th,#view-runlog td{border:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top}
+#view-report th,#view-runlog th{background:var(--chip)}
+#view-files:not(.hidden){display:grid;grid-template-columns:260px 1fr;gap:12px}
+.files{list-style:none;margin:0;padding:0;max-height:680px;overflow:auto;font:12px/1.5 ui-monospace,Consolas,monospace}
+.files li{padding:3px 6px;border-radius:6px;cursor:pointer;word-break:break-all}
+.files li:hover,.files li.on{background:var(--chip)}
+.files li.dir{cursor:default;color:var(--muted);font-weight:700;margin-top:6px}
+.viewer{max-height:680px;overflow:auto}
+.viewer pre{margin:0;white-space:pre-wrap;font-size:12px;background:var(--chip);padding:10px;border-radius:8px}
+.viewer img{max-width:100%;background:#fff;border-radius:6px}
+#view-runlog{max-height:720px;overflow:auto}
+
+@media (max-width:1000px){
+  .board{grid-template-columns:1fr 1fr}
+  .split{grid-template-columns:1fr}
+  #view-files:not(.hidden){grid-template-columns:1fr}
+}
+@media (max-width:600px){
+  .board{grid-template-columns:1fr}
+  .top,main{padding-left:16px;padding-right:16px}
+}

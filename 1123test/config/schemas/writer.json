@@ -1,0 +1,35 @@
+{
+  "type": "object",
+  "properties": {
+    "report_md": {
+      "type": "string"
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "to_agent": {
+            "type": "string",
+            "enum": "$ANALYSTS"
+          },
+          "question": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "to_agent",
+          "question"
+        ]
+      }
+    },
+    "log_summary": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "report_md",
+    "questions",
+    "log_summary"
+  ]
+}

@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>산업리포트 에이전트 구조</title>
+<style>
+:root{
+  --bg:#f6f4f1; --panel:#ffffff; --ink:#1d1b19; --muted:#6b645d; --line:#d6cec5;
+  --brand:#b3122a;
+  --c-main:#b3122a; --c-ana:#2f7a55; --c-out:#5b4a9e; --c-qa:#b4541b; --c-back:#d0213c; --c-ws:#2f6f9f;
+  --chip:#f1ede8;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#151312; --panel:#1f1c1a; --ink:#efeae4; --muted:#a59d94; --line:#3d3833;
+    --brand:#ff5a6e;
+    --c-main:#ff5a6e; --c-ana:#74c296; --c-out:#a797ec; --c-qa:#f0a060; --c-back:#ff6b7f; --c-ws:#6fb0e0;
+    --chip:#2a2623;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#151312; --panel:#1f1c1a; --ink:#efeae4; --muted:#a59d94; --line:#3d3833;
+  --brand:#ff5a6e;
+  --c-main:#ff5a6e; --c-ana:#74c296; --c-out:#a797ec; --c-qa:#f0a060; --c-back:#ff6b7f; --c-ws:#6fb0e0;
+  --chip:#2a2623;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 16px 64px}
+header{border-top:4px solid var(--brand);padding-top:18px;margin-bottom:24px}
+.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--brand);font-weight:700;text-transform:uppercase}
+h1{font-size:28px;margin:6px 0 8px;line-height:1.3}
+h2{font-size:19px;margin:40px 0 14px;display:flex;align-items:center;gap:10px}
+h2 .n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--brand);color:#fff;font-size:13px;flex:none}
+.lead{color:var(--muted);max-width:860px;margin:0}
+.rules{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.rules span{background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:4px 12px;font-size:13px}
+.rules b{color:var(--brand)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.card h3{margin:0 0 8px;font-size:15px}
+.card ul{margin:0;padding-left:18px}
+.card li{margin:3px 0}
+.muted{color:var(--muted)}
+.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:99px;background:var(--chip);color:var(--muted);margin:2px 4px 2px 0}
+.kq{counter-reset:k;list-style:none;padding:0;margin:0}
+.kq li{counter-increment:k;padding:7px 0 7px 34px;position:relative;border-bottom:1px dashed var(--line)}
+.kq li:last-child{border-bottom:0}
+.kq li::before{content:"Q" counter(k);position:absolute;left:0;top:7px;font-weight:700;color:var(--brand);font-size:13px}
+code{font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+
+.fig{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto}
+.fig svg{display:block;min-width:980px;width:100%;height:auto}
+.fig text{font-family:inherit;fill:var(--ink)}
+.fig .sub{fill:var(--muted);font-size:11.5px}
+.fig .mono{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;font-weight:700}
+.fig .ph{font-size:12px;font-weight:700;fill:var(--muted);letter-spacing:.04em}
+.fig .nd{fill:var(--panel);stroke-width:2}
+.fig .grp{fill:none;stroke-width:1.5;stroke-dasharray:5 4}
+.fig .fwd{stroke:var(--ink);stroke-width:2;fill:none}
+.fig .back{stroke:var(--c-back);stroke-width:2;fill:none;stroke-dasharray:6 4}
+.fig .ws{stroke:var(--c-ws);stroke-width:1.5;fill:none;stroke-dasharray:2 4}
+.fig .bl{fill:var(--c-back);font-size:12px;font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12.5px;color:var(--muted);margin:12px 0 0}
+.legend span{display:flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:26px;height:0;border-top:2px solid}
+
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);font-size:13.5px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--chip);font-size:12.5px;color:var(--muted);font-weight:700}
+tr:last-child td{border-bottom:0}
+td code{font-weight:700}
+.tw{overflow-x:auto;border-radius:12px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--k);margin-right:6px;vertical-align:1px}
+.phase-row td{background:var(--chip);font-weight:700;font-size:12.5px;color:var(--muted)}
+.rid{font-weight:800;color:var(--c-back);white-space:nowrap}
+pre.tree{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;font:13px/1.7 ui-monospace,Consolas,monospace;overflow-x:auto;color:var(--ink)}
+pre.tree .c{color:var(--muted)}
+footer{margin-top:40px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">AI Agent Team · Industry Report</div>
+  <h1>산업리포트 작성 에이전트 구조</h1>
+  <p class="lead">기준 리포트: SK증권 「IT 하드웨어 2027 연간전망 — IT 인플레이션 다음은?」(13쪽). 이 리포트가 만들어지는 절차를 4개 페이즈로 나누고, 페이즈 안의 에이전트는 모두 동시에 돌린다.</p>
+  <div class="rules">
+    <span><b>병렬 우선</b> · 같은 페이즈 에이전트는 서로 기다리지 않는다</span>
+    <span><b>공유 작업 공간</b> · 모든 결과는 <code>workspace/</code>에 파일로 남긴다</span>
+    <span><b>되돌아가는 경로</b> · R1~R5, 최대 2회</span>
+    <span><b>작성 ≠ 검토</b> · 쓰는 에이전트와 검토하는 에이전트를 나눈다</span>
+    <span><b>범위 정의는 메인 세션</b> · 별도 에이전트 없음</span>
+  </div>
+</header>
+
+<h2><span class="n">1</span>목적 · 범위 <span class="muted" style="font-size:13px;font-weight:400">메인 세션이 정해 <code>workspace/00_brief/brief.md</code>에 적는다</span></h2>
+<div class="grid g3">
+  <div class="card">
+    <h3>목적</h3>
+    <p style="margin:0">기준 리포트와 같은 구성(표지 키워드 3개 → 요약 → 전년 리뷰 → 테마 3개 → Peer Valuation → Compliance)으로 <b>IT 하드웨어 2027 연간전망</b>을 쓴다. 결론은 "불확실한 업황에서 쇼티지가 이어지는 부품/기업을 고르는 기준"으로 끝난다.</p>
+    <ol class="kq" style="margin-top:8px">
+      <li>26년 주가는 왜 상반기에 오르고 하반기에 꺾였나?</li>
+      <li>27년 세트 출하는 얼마나 역성장하나?</li>
+      <li>LTA·증설은 호재인가, 위험인가?</li>
+      <li>CR 압박을 견디는 쇼티지 부품/기업은?</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h3 style="color:var(--c-ana)">포함</h3>
+    <p style="margin:0 0 6px"><b>세트</b><br><span class="tag">스마트폰</span><span class="tag">PC·노트북</span><span class="tag">태블릿</span><span class="tag">TV</span><span class="tag">폴더블</span></p>
+    <p style="margin:0 0 6px"><b>부품</b><br><span class="tag">기판(FCBGA·HDI·MLB)</span><span class="tag">MLCC</span><span class="tag">카메라 모듈·렌즈</span><span class="tag">외장재·부자재</span><span class="tag">RF·전자모듈</span></p>
+    <p style="margin:0"><b>기간</b> 2026 리뷰 ~ 2027F<br><b>지역</b> 국내 + 대만·일본·중국 Peer</p>
+  </div>
+  <div class="card">
+    <h3 style="color:var(--c-qa)">제외</h3>
+    <ul>
+      <li>반도체 칩·메모리 업황 자체 (원가 변수로만)</li>
+      <li>개별 종목 목표주가·투자의견</li>
+      <li>배터리 셀·소재 심층</li>
+    </ul>
+    <h3 style="margin-top:12px">숫자 규칙</h3>
+    <ul>
+      <li>모든 숫자에 출처·기준일. 없으면 <b>[확인필요]</b></li>
+      <li>기준 리포트 숫자는 비교용, 그대로 베끼지 않음</li>
+    </ul>
+  </div>
+</div>
+
+<h2><span class="n">2</span>구조도</h2>
+<div class="fig">
+<svg viewBox="0 0 1160 590" role="img" aria-label="메인 세션 범위 정의 후 분석 5개 병렬, 작성 2개 병렬, 검토 2개 병렬, 메인 세션 통합. 빨간 점선은 되돌아가는 경로 R1~R5, 모든 단계는 공유 작업 공간에 파일을 남긴다.">
+  <defs>
+    <marker id="af" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill:var(--ink)"/></marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill:var(--c-back)"/></marker>
+  </defs>
+
+  <!-- P0 main -->
+  <rect class="nd" x="20" y="215" width="150" height="110" rx="10" style="stroke:var(--c-main)"/>
+  <text x="95" y="245" text-anchor="middle" font-weight="700" font-size="14">메인 세션</text>
+  <text x="95" y="266" text-anchor="middle" class="sub">목적·범위 정의</text>
+  <text x="95" y="283" text-anchor="middle" class="sub">작업 지시</text>
+  <text x="95" y="306" text-anchor="middle" class="sub" style="font-family:ui-monospace,Consolas,monospace">00_brief/</text>
+
+  <!-- P1 analysis group -->
+  <rect class="grp" x="212" y="38" width="226" height="436" rx="14" style="stroke:var(--c-ana)"/>
+  <g style="--k:var(--c-ana)">
+    <rect class="nd" x="228" y="52"  width="194" height="70" rx="9" style="stroke:var(--c-ana)"/>
+    <text x="325" y="80"  text-anchor="middle" class="mono" style="fill:var(--c-ana)">market-reviewer</text>
+    <text x="325" y="101" text-anchor="middle" class="sub">2026 리뷰 · 주가·판매량</text>
+    <rect class="nd" x="228" y="136" width="194" height="70" rx="9" style="stroke:var(--c-ana)"/>
+    <text x="325" y="164" text-anchor="middle" class="mono" style="fill:var(--c-ana)">demand-analyst</text>
+    <text x="325" y="185" text-anchor="middle" class="sub">테마1 · 디바이스 역성장</text>
+    <rect class="nd" x="228" y="220" width="194" height="70" rx="9" style="stroke:var(--c-ana)"/>
+    <text x="325" y="248" text-anchor="middle" class="mono" style="fill:var(--c-ana)">lta-analyst</text>
+    <text x="325" y="269" text-anchor="middle" class="sub">테마2 · LTA·증설</text>
+    <rect class="nd" x="228" y="304" width="194" height="70" rx="9" style="stroke:var(--c-ana)"/>
+    <text x="325" y="332" text-anchor="middle" class="mono" style="fill:var(--c-ana)">inflation-analyst</text>
+    <text x="325" y="353" text-anchor="middle" class="sub">테마3 · IT 인플레이션·CR</text>
+    <rect class="nd" x="228" y="388" width="194" height="70" rx="9" style="stroke:var(--c-ana)"/>
+    <text x="325" y="416" text-anchor="middle" class="mono" style="fill:var(--c-ana)">valuation-analyst</text>
+    <text x="325" y="437" text-anchor="middle" class="sub">Peer Valuation 표</text>
+  </g>
+
+  <!-- P2 writing group -->
+  <rect class="grp" x="482" y="150" width="206" height="240" rx="14" style="stroke:var(--c-out)"/>
+  <rect class="nd" x="498" y="168" width="174" height="84" rx="9" style="stroke:var(--c-out)"/>
+  <text x="585" y="200" text-anchor="middle" class="mono" style="fill:var(--c-out)">report-writer</text>
+  <text x="585" y="221" text-anchor="middle" class="sub">표지·요약·본문</text>
+  <text x="585" y="238" text-anchor="middle" class="sub">종목 선별 종합</text>
+  <rect class="nd" x="498" y="288" width="174" height="84" rx="9" style="stroke:var(--c-out)"/>
+  <text x="585" y="320" text-anchor="middle" class="mono" style="fill:var(--c-out)">chart-maker</text>
+  <text x="585" y="341" text-anchor="middle" class="sub">차트·표·도식</text>
+  <text x="585" y="358" text-anchor="middle" class="sub">"자료:" 출처 표기</text>
+
+  <!-- P3 review group -->
+  <rect class="grp" x="732" y="150" width="206" height="240" rx="14" style="stroke:var(--c-qa)"/>
+  <rect class="nd" x="748" y="168" width="174" height="84" rx="9" style="stroke:var(--c-qa)"/>
+  <text x="835" y="200" text-anchor="middle" class="mono" style="fill:var(--c-qa)">fact-checker</text>
+  <text x="835" y="221" text-anchor="middle" class="sub">본문·차트 숫자</text>
+  <text x="835" y="238" text-anchor="middle" class="sub">↔ 분석 원본 대조</text>
+  <rect class="nd" x="748" y="288" width="174" height="84" rx="9" style="stroke:var(--c-qa)"/>
+  <text x="835" y="320" text-anchor="middle" class="mono" style="fill:var(--c-qa)">logic-reviewer</text>
+  <text x="835" y="341" text-anchor="middle" class="sub">논리 비약·범위 이탈</text>
+  <text x="835" y="358" text-anchor="middle" class="sub">투자권유 표현·고지문</text>
+
+  <!-- P4 main -->
+  <rect class="nd" x="990" y="215" width="150" height="110" rx="10" style="stroke:var(--c-main)"/>
+  <text x="1065" y="245" text-anchor="middle" font-weight="700" font-size="14">메인 세션</text>
+  <text x="1065" y="266" text-anchor="middle" class="sub">검토 판정 통합</text>
+  <text x="1065" y="283" text-anchor="middle" class="sub">통과 → 발간</text>
+  <text x="1065" y="306" text-anchor="middle" class="sub" style="font-family:ui-monospace,Consolas,monospace">40_final/</text>
+
+  <!-- forward -->
+  <path class="fwd" d="M170 292 H210" marker-end="url(#af)"/>
+  <path class="fwd" d="M438 292 H480" marker-end="url(#af)"/>
+  <path class="fwd" d="M688 270 H730" marker-end="url(#af)"/>
+  <path class="fwd" d="M938 292 H988" marker-end="url(#af)"/>
+
+  <!-- back paths -->
+  <path class="back" d="M212 250 H172" marker-end="url(#ab)"/>
+  <text x="192" y="242" text-anchor="middle" class="bl">R5</text>
+  <path class="back" d="M482 250 H440" marker-end="url(#ab)"/>
+  <text x="461" y="242" text-anchor="middle" class="bl">R4</text>
+  <path class="back" d="M732 232 H690" marker-end="url(#ab)"/>
+  <text x="711" y="224" text-anchor="middle" class="bl">R1</text>
+  <path class="back" d="M732 310 H690" marker-end="url(#ab)"/>
+  <text x="711" y="302" text-anchor="middle" class="bl">R2</text>
+  <path class="back" d="M835 150 V20 H325 V36" marker-end="url(#ab)"/>
+  <text x="580" y="14" text-anchor="middle" class="bl">R3 · 숫자·근거 문제 → 해당 분석 에이전트만 재실행</text>
+
+  <!-- phase labels -->
+  <text x="95"   y="345" text-anchor="middle" class="ph">P0 · 범위</text>
+  <text x="325"  y="492" text-anchor="middle" class="ph">P1 · 분석 ×5 병렬</text>
+  <text x="585"  y="410" text-anchor="middle" class="ph">P2 · 작성 ×2 병렬</text>
+  <text x="835"  y="410" text-anchor="middle" class="ph">P3 · 검토 ×2 병렬</text>
+  <text x="1065" y="345" text-anchor="middle" class="ph">P4 · 통합</text>
+
+  <!-- workspace -->
+  <path class="ws" d="M95 352 V520"/>
+  <path class="ws" d="M325 498 V520"/>
+  <path class="ws" d="M585 416 V520"/>
+  <path class="ws" d="M835 416 V520"/>
+  <path class="ws" d="M1065 352 V520"/>
+  <rect x="20" y="520" width="1120" height="56" rx="10" style="fill:var(--panel);stroke:var(--c-ws);stroke-width:2"/>
+  <text x="40" y="545" font-weight="700" font-size="13.5" style="fill:var(--c-ws)">workspace/  공유 작업 공간</text>
+  <text x="40" y="565" class="sub" style="font-family:ui-monospace,Consolas,monospace">00_brief/ · 10_analysis/&lt;agent&gt;/ · 20_draft/ · 30_review/ · 40_final/ · run_log.json</text>
+</svg>
+<div class="legend">
+  <span><i class="sw" style="border-color:var(--ink)"></i>다음 페이즈로</span>
+  <span><i class="sw" style="border-color:var(--c-back);border-top-style:dashed"></i>되돌아가는 경로</span>
+  <span><i class="sw" style="border-color:var(--c-ws);border-top-style:dotted"></i>파일 기록</span>
+  <span><i class="sw" style="border-color:var(--muted);border-top-style:dashed"></i>병렬 묶음</span>
+</div>
+</div>
+
+<h2><span class="n">3</span>페이즈별 에이전트</h2>
+<div class="tw">
+<table>
+  <thead><tr><th style="width:170px">에이전트</th><th>맡는 일</th><th style="width:250px">읽는 파일</th><th style="width:250px">쓰는 파일</th></tr></thead>
+  <tbody>
+    <tr class="phase-row"><td colspan="4">P0 · 범위 정의 — 메인 세션 (에이전트 아님)</td></tr>
+    <tr style="--k:var(--c-main)"><td><span class="dot"></span>메인 세션</td>
+      <td>목적·범위·핵심 질문·키워드 3개 확정, 에이전트별 지시문 작성, P1 5개 동시 실행</td>
+      <td>기준 리포트 PDF</td><td><code>00_brief/brief.md</code></td></tr>
+
+    <tr class="phase-row"><td colspan="4">P1 · 분석 — 5개 동시 실행. 각자 자기 데이터를 직접 모은다 (수집 전담 에이전트를 따로 두면 그만큼 직렬 대기가 생김)</td></tr>
+    <tr style="--k:var(--c-ana)"><td><span class="dot"></span><code>market-reviewer</code></td>
+      <td>2026 주가 리뷰: 상반기 상승(패키징기판·MLCC 쇼티지), 하반기 하락(AI Capex 우려·출하 역성장·CR 가능성)</td>
+      <td rowspan="5"><code>00_brief/brief.md</code><br><span class="muted">P1끼리는 서로의 파일을 읽지 않는다</span></td>
+      <td rowspan="5"><code>10_analysis/&lt;자기 이름&gt;/</code><br>· <code>section.md</code> 섹션 초안<br>· <code>data.csv</code> 쓴 숫자 전부<br>· <code>sources.md</code> 출처·기준일<br>· <code>handoff.md</code> 결론 3줄·쇼티지 후보</td></tr>
+    <tr style="--k:var(--c-ana)"><td><span class="dot"></span><code>demand-analyst</code></td>
+      <td>테마1 디바이스 역성장: 세트별 출하 YoY(2017~2027F), 오더컷 시점, 세트사 주문 조정</td></tr>
+    <tr style="--k:var(--c-ana)"><td><span class="dot"></span><code>lta-analyst</code></td>
+      <td>테마2 LTA: 과거 LTA 사례 비교, 선수금·자금 주체·가격 인상·증설 합 vs 수요 4가지 점검, 기판 업체 포트폴리오</td></tr>
+    <tr style="--k:var(--c-ana)"><td><span class="dot"></span><code>inflation-analyst</code></td>
+      <td>테마3 IT 인플레이션 다음: 부품별 가격 인상, 세트 원가 부담, 재고축적 사이클, CR 압박 vs 방어 부품</td></tr>
+    <tr style="--k:var(--c-ana)"><td><span class="dot"></span><code>valuation-analyst</code></td>
+      <td>글로벌 Peer Valuation(카메라·기판·MLCC 등) 시총·OPM·PER·PBR 2025~2027F 표</td></tr>
+
+    <tr class="phase-row"><td colspan="4">P2 · 작성 — 2개 동시 실행</td></tr>
+    <tr style="--k:var(--c-out)"><td><span class="dot"></span><code>report-writer</code></td>
+      <td>표지 한 줄·요약·사이드 헤드라인, 섹션 연결, 5개 handoff를 모아 쇼티지 부품/기업 선별 종합. 숫자는 <code>data.csv</code>에 있는 것만</td>
+      <td><code>10_analysis/*/</code></td><td><code>20_draft/report.md</code><br><code>20_draft/questions.md</code> (R4)</td></tr>
+    <tr style="--k:var(--c-out)"><td><span class="dot"></span><code>chart-maker</code></td>
+      <td>막대·선 차트, 순환구조 도식, 출하량 표, Peer 표. 차트마다 "자료:" 표기</td>
+      <td><code>10_analysis/*/data.csv</code></td><td><code>20_draft/charts/*.png</code><br><code>20_draft/charts/index.md</code></td></tr>
+
+    <tr class="phase-row"><td colspan="4">P3 · 검토 — 2개 동시 실행. 작성 에이전트와 다른 에이전트가 맡고, 초안을 직접 고치지 않는다</td></tr>
+    <tr style="--k:var(--c-qa)"><td><span class="dot"></span><code>fact-checker</code></td>
+      <td>본문·차트의 숫자를 하나씩 <code>data.csv</code>·<code>sources.md</code>와 대조. 출처 없는 숫자, [확인필요] 누락 찾기</td>
+      <td><code>20_draft/</code>, <code>10_analysis/</code></td><td><code>30_review/facts.md</code></td></tr>
+    <tr style="--k:var(--c-qa)"><td><span class="dot"></span><code>logic-reviewer</code></td>
+      <td>핵심 질문 4개에 답했는지, 논리 비약, 범위 이탈, 단정적 투자 권유 표현, Compliance Notice 포함 여부</td>
+      <td><code>20_draft/</code>, <code>00_brief/brief.md</code></td><td><code>30_review/logic.md</code></td></tr>
+
+    <tr class="phase-row"><td colspan="4">P4 · 통합 — 메인 세션</td></tr>
+    <tr style="--k:var(--c-main)"><td><span class="dot"></span>메인 세션</td>
+      <td>두 검토 파일의 지적을 R1~R5로 분류해 해당 에이전트만 다시 돌림. 모두 통과하면 발간</td>
+      <td><code>30_review/*.md</code></td><td><code>40_final/report.md</code>, <code>run_log.json</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2><span class="n">4</span>되돌아가는 경로</h2>
+<div class="tw">
+<table>
+  <thead><tr><th style="width:60px">경로</th><th style="width:220px">어디서 → 어디로</th><th>언제</th><th style="width:300px">다시 돌리는 범위</th></tr></thead>
+  <tbody>
+    <tr><td class="rid">R1</td><td>검토 → <code>report-writer</code></td><td>문장·구성·표현 문제 (논리 비약, 투자권유 표현, 요약과 본문 불일치)</td><td>writer만. 해당 섹션만 고친 뒤 P3 재검토</td></tr>
+    <tr><td class="rid">R2</td><td>검토 → <code>chart-maker</code></td><td>차트 숫자·축·출처 표기 오류</td><td>chart-maker만. 해당 차트만 다시 그림</td></tr>
+    <tr><td class="rid">R3</td><td>검토 → P1 분석 에이전트</td><td>숫자 자체가 틀렸거나 근거가 없음</td><td>문제 된 분석 에이전트만 → 그 섹션의 writer·chart 부분 → P3</td></tr>
+    <tr><td class="rid">R4</td><td><code>report-writer</code> → P1 분석 에이전트</td><td>작성 중 근거가 모자람 (<code>questions.md</code>에 적음)</td><td>질문받은 분석 에이전트만 보강. writer는 나머지 섹션 계속 작성</td></tr>
+    <tr><td class="rid">R5</td><td>P1 분석 에이전트 → 메인 세션</td><td>범위 밖 요청이거나 데이터를 구할 수 없음</td><td>메인 세션이 <code>brief.md</code>를 고치거나 [확인필요]로 확정</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="muted" style="font-size:13px;margin:8px 0 0">같은 지적으로 2회 되돌아간 뒤에도 남으면 더 돌리지 않고 [확인필요]로 표시해 발간한다. 되돌아갈 때마다 <code>run_log.json</code>에 <code>rerun_of</code>로 이전 기록을 잇는다.</p>
+
+<h2><span class="n">5</span>공유 작업 공간</h2>
+<div class="grid g2">
+<pre class="tree">workspace/
+├─ 00_brief/brief.md          <span class="c"># P0 목적·범위·핵심 질문</span>
+├─ 10_analysis/
+│  ├─ market-reviewer/        <span class="c"># section · data · sources · handoff</span>
+│  ├─ demand-analyst/
+│  ├─ lta-analyst/
+│  ├─ inflation-analyst/
+│  └─ valuation-analyst/
+├─ 20_draft/
+│  ├─ report.md
+│  ├─ questions.md            <span class="c"># R4 질문</span>
+│  └─ charts/
+├─ 30_review/
+│  ├─ facts.md
+│  └─ logic.md
+├─ 40_final/report.md
+└─ run_log.json               <span class="c"># 메인 세션만 씀</span></pre>
+<div class="card">
+  <h3>파일 규칙</h3>
+  <ul>
+    <li><b>자기 폴더에만 쓴다.</b> 병렬로 돌아도 덮어쓸 일이 없다.</li>
+    <li>다른 에이전트 결과는 <b>파일로만</b> 받는다. 대화로 넘기지 않는다.</li>
+    <li>다시 돌면 기존 파일을 덮어쓰고, 이전 판은 <code>_v1</code>처럼 남긴다.</li>
+    <li><code>run_log.json</code>은 메인 세션만 쓴다. 에이전트는 결과 끝에 로그 요약을 붙여 돌려준다.</li>
+    <li>검토 에이전트는 <code>20_draft/</code>를 직접 고치지 않고 <code>30_review/</code>에 지적만 남긴다.</li>
+  </ul>
+  <h3 style="margin-top:12px">리포트 쪽과 담당</h3>
+  <p style="margin:0;font-size:13.5px">p.1–2 표지·요약 <code>report-writer</code> · p.3 26 리뷰 <code>market-reviewer</code> · p.4–5 디바이스 <code>demand-analyst</code> · p.6–7 LTA <code>lta-analyst</code> · p.8 인플레이션 <code>inflation-analyst</code> · p.9–12 Peer <code>valuation-analyst</code> · p.13 Compliance <code>logic-reviewer</code> 확인</p>
+</div>
+</div>
+
+<footer>
+  다음 단계: 이 구조대로 <code>.claude/agents/</code>에 에이전트 정의 9개, 절차서 <code>playbook.md</code>, <code>CLAUDE.md</code>를 만든다. 결정 근거는 <code>decision_log.md</code>.
+</footer>
+</div>
+</body>
+</html>

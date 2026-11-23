@@ -1,0 +1,125 @@
+{
+  "type": "object",
+  "properties": {
+    "section_md": {
+      "type": "string",
+      "description": "섹션 본문 마크다운. 제목(#)은 빼고 본문만."
+    },
+    "data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "period": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string",
+            "description": "숫자 문자열 또는 [확인필요]"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "metric",
+          "period",
+          "value",
+          "unit",
+          "source_id"
+        ]
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "where": {
+            "type": "string"
+          },
+          "as_of": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "where",
+          "as_of"
+        ]
+      }
+    },
+    "conclusions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "결론 3줄"
+    },
+    "shortage_candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "reason"
+        ]
+      }
+    },
+    "escalations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "out_of_scope",
+              "no_data"
+            ]
+          },
+          "detail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "detail"
+        ]
+      }
+    },
+    "log_summary": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "section_md",
+    "data",
+    "sources",
+    "conclusions",
+    "shortage_candidates",
+    "escalations",
+    "log_summary"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "fonts": ["Malgun Gothic", "AppleGothic", "NanumGothic", "DejaVu Sans"],
+  "palette": ["#b3122a", "#2f6f9f", "#8a8a8a", "#e0ac55", "#3b7d5a"],
+  "figsize": [6.4, 3.6],
+  "dpi": 150,
+  "title_size": 11,
+  "source_size": 7
+}

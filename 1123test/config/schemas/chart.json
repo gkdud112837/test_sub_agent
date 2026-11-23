@@ -1,0 +1,81 @@
+{
+  "type": "object",
+  "properties": {
+    "charts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "영문 소문자·숫자·하이픈"
+          },
+          "title": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "bar",
+              "line"
+            ]
+          },
+          "section": {
+            "type": "string",
+            "enum": "$ANALYSTS"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "x": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "series": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              },
+              "required": [
+                "name",
+                "values"
+              ]
+            }
+          },
+          "source": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "kind",
+          "section",
+          "unit",
+          "x",
+          "series",
+          "source"
+        ]
+      }
+    },
+    "log_summary": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "charts",
+    "log_summary"
+  ]
+}
