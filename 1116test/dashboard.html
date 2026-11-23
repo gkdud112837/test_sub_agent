@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>에이전트 대시보드</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg-1: #0b1020;
+    --bg-2: #141a33;
+    --glass: rgba(255, 255, 255, 0.06);
+    --glass-strong: rgba(255, 255, 255, 0.10);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-highlight: rgba(255, 255, 255, 0.22);
+    --text-primary: #f0efec;
+    --text-secondary: #c3c2b7;
+    --text-muted: #9a9890;
+    --grid: rgba(255, 255, 255, 0.08);
+    --baseline: rgba(255, 255, 255, 0.28);
+    --accent: #3987e5;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --good: #0ca30c;
+    --warning: #fab219;
+    --serious: #ec835a;
+    --critical: #d03b3b;
+    --radius: 18px;
+    --font: Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-primary);
+    background:
+      radial-gradient(900px 600px at 8% -10%, rgba(57, 135, 229, 0.35), transparent 60%),
+      radial-gradient(800px 600px at 105% 10%, rgba(144, 133, 233, 0.28), transparent 60%),
+      radial-gradient(900px 700px at 50% 120%, rgba(217, 89, 38, 0.18), transparent 60%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    background-attachment: fixed;
+  }
+  .wrap { max-width: 1440px; margin: 0 auto; padding: 24px 24px 48px; }
+  .glass {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.30), inset 0 1px 0 var(--glass-highlight);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+  }
+
+  /* ---------- header ---------- */
+  header.top {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 16px 20px; margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .brand-mark {
+    width: 40px; height: 40px; border-radius: 12px; flex: none;
+    background: linear-gradient(135deg, #3987e5, #9085e9);
+    display: grid; place-items: center; font-weight: 700;
+    box-shadow: 0 6px 20px rgba(57, 135, 229, 0.45);
+  }
+  h1 { font-size: 18px; margin: 0; font-weight: 700; letter-spacing: -0.01em; }
+  .sub { display: flex; align-items: center; gap: 10px; color: var(--text-secondary); font-size: 13px; flex-wrap: wrap; }
+  select, input[type="text"] {
+    font: inherit; color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.25); border: 1px solid var(--glass-border);
+    border-radius: 10px; padding: 8px 12px; outline: none;
+  }
+  select { padding: 4px 8px; font-size: 13px; max-width: 280px; }
+  select option { background: #1b2030; }
+  input[type="text"]:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(57, 135, 229, 0.25); }
+  .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .controls input { width: 320px; max-width: 60vw; }
+  .btn {
+    font: inherit; font-weight: 600; border-radius: 10px; padding: 8px 16px; cursor: pointer;
+    border: 1px solid var(--glass-border); color: var(--text-primary); display: inline-flex; align-items: center; gap: 6px;
+    transition: transform .12s ease, background .2s ease, opacity .2s ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-run { background: linear-gradient(135deg, #2a78d6, #3987e5); border-color: rgba(57, 135, 229, .6); box-shadow: 0 6px 18px rgba(57, 135, 229, .35); }
+  .btn-stop { background: rgba(208, 59, 59, 0.18); border-color: rgba(208, 59, 59, 0.55); }
+  .btn-stop:not(:disabled):hover { background: rgba(208, 59, 59, 0.32); }
+  .btn-ghost { background: var(--glass); padding: 4px 10px; font-size: 12px; font-weight: 500; }
+  .btn svg { width: 14px; height: 14px; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px;
+    font-size: 12px; background: var(--glass); border: 1px solid var(--glass-border); color: var(--text-secondary);
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex: none; }
+  .chip.live { color: var(--text-primary); border-color: rgba(57, 135, 229, .5); }
+  .chip.live .dot { background: var(--accent); animation: blink 1s ease-in-out infinite; }
+
+  .banner { padding: 12px 16px; margin-bottom: 16px; border-color: rgba(250, 178, 25, .5); display: none; }
+  .banner code { font-family: var(--mono); background: rgba(0, 0, 0, .3); padding: 2px 6px; border-radius: 6px; }
+
+  /* ---------- agent cards ---------- */
+  .section-title { font-size: 13px; color: var(--text-secondary); font-weight: 600; margin: 0 4px 10px; letter-spacing: .02em; }
+  .agents { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
+  .agent { position: relative; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-height: 380px; overflow: hidden; }
+  .agent::before {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; opacity: 0;
+    background: linear-gradient(135deg, rgba(57, 135, 229, .9), rgba(144, 133, 233, .6), rgba(57, 135, 229, .9));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+  }
+  .agent.running::before { animation: glow 1.4s ease-in-out infinite; }
+  .agent.running { box-shadow: 0 10px 40px rgba(0, 0, 0, .3), 0 0 28px rgba(57, 135, 229, .25), inset 0 1px 0 var(--glass-highlight); }
+  .agent-head { display: flex; align-items: center; gap: 12px; }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; flex: none;
+    background: var(--glass-strong); border: 1px solid var(--glass-border); font-weight: 700; font-size: 15px;
+  }
+  .agent-name { font-weight: 700; font-size: 15px; }
+  .agent-role { color: var(--text-muted); font-size: 12px; }
+  .status { margin-left: auto; }
+  .status.running { color: var(--text-primary); border-color: rgba(57, 135, 229, .55); background: rgba(57, 135, 229, .15); }
+  .status.running .dot { background: var(--accent); animation: blink .9s ease-in-out infinite; box-shadow: 0 0 10px var(--accent); }
+  .status.done .dot { background: var(--good); }
+  .status.error .dot { background: var(--critical); }
+  .status.stopped .dot { background: var(--warning); }
+  .activity {
+    font-size: 12px; color: var(--text-secondary); background: rgba(0, 0, 0, .2); border-radius: 10px;
+    padding: 8px 10px; min-height: 36px; font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .agent.running .activity { color: var(--text-primary); }
+  .meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
+  .log-title { font-size: 12px; color: var(--text-secondary); font-weight: 600; display: flex; justify-content: space-between; }
+  .log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 260px; flex: 1; scrollbar-width: thin; }
+  .log li { background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .07); border-radius: 12px; padding: 10px; font-size: 12px; }
+  .log li.fresh { animation: fresh 2.4s ease-out; }
+  .log .row1 { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .step { font-weight: 700; color: var(--text-primary); }
+  .tag { font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--glass-border); color: var(--text-secondary); }
+  .tag.ok { border-color: rgba(12, 163, 12, .6); color: #7fd67f; }
+  .tag.warn { border-color: rgba(250, 178, 25, .6); color: #fcd27a; }
+  .tag.bad { border-color: rgba(208, 59, 59, .7); color: #f09a9a; }
+  .time { margin-left: auto; color: var(--text-muted); font-size: 11px; }
+  .kr { color: var(--text-secondary); margin: 2px 0 0; padding-left: 14px; }
+  .kr li { background: none; border: 0; padding: 0; font-size: 12px; }
+  .empty { color: var(--text-muted); font-size: 12px; text-align: center; padding: 18px 8px; border: 1px dashed rgba(255, 255, 255, .12); border-radius: 12px; }
+
+  /* ---------- bottom ---------- */
+  .bottom { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 16px; margin-bottom: 16px; }
+  .panel { padding: 18px; min-width: 0; }
+  .panel-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .panel-head h2 { font-size: 15px; margin: 0; font-weight: 700; }
+  .panel-head .src { color: var(--text-muted); font-size: 12px; }
+  .panel-head .right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .legend { display: flex; gap: 14px; font-size: 12px; color: var(--text-secondary); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch { width: 10px; height: 10px; border-radius: 3px; }
+  #chart { position: relative; }
+  #chart svg { display: block; width: 100%; height: 300px; overflow: visible; }
+  #chart .axis-label { fill: var(--text-muted); font-size: 11px; }
+  #chart .cat-label { fill: var(--text-secondary); font-size: 12px; }
+  #chart .bar { cursor: pointer; transition: opacity .15s; }
+  #chart.hovering .bar:not(.hot) { opacity: .45; }
+  .tooltip {
+    position: absolute; pointer-events: none; z-index: 5; min-width: 150px;
+    background: rgba(20, 24, 38, .92); border: 1px solid var(--glass-border); border-radius: 10px; padding: 8px 10px;
+    font-size: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, .4); display: none;
+  }
+  .tooltip .v { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .tooltip .c { color: var(--text-muted); font-family: var(--mono); font-size: 11px; }
+  table.data { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+  table.data th, table.data td { padding: 6px 8px; border-bottom: 1px solid var(--grid); text-align: right; }
+  table.data th:first-child, table.data td:first-child { text-align: left; }
+  table.data th { color: var(--text-secondary); font-weight: 600; }
+
+  .conclusion { border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; background: rgba(57, 135, 229, .12); border: 1px solid rgba(57, 135, 229, .4); }
+  .conclusion .label { font-size: 12px; color: var(--text-secondary); }
+  .conclusion .verdict { font-size: 18px; font-weight: 700; }
+  .findings { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto; scrollbar-width: thin; }
+  .findings li { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .07); border-radius: 12px; padding: 10px 12px; }
+  .sev { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; grid-row: span 3; align-self: start; white-space: nowrap; }
+  .sev svg { width: 12px; height: 12px; }
+  .sev.high { background: rgba(208, 59, 59, .2); color: #f3a3a3; border: 1px solid rgba(208, 59, 59, .6); }
+  .sev.mid { background: rgba(250, 178, 25, .14); color: #fcd27a; border: 1px solid rgba(250, 178, 25, .5); }
+  .sev.low { background: rgba(255, 255, 255, .06); color: var(--text-secondary); border: 1px solid var(--glass-border); }
+  .f-title { font-weight: 600; font-size: 13px; }
+  .f-loc { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+  .f-fix { font-size: 12px; color: var(--text-secondary); }
+
+  .feed { list-style: none; margin: 0; padding: 0; max-height: 200px; overflow-y: auto; font-family: var(--mono); font-size: 12px; scrollbar-width: thin; }
+  .feed li { display: grid; grid-template-columns: 70px 150px 1fr; gap: 8px; padding: 4px 0; border-bottom: 1px solid rgba(255, 255, 255, .05); }
+  .feed .t { color: var(--text-muted); }
+  .feed .who { color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .feed .x { color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .2; } }
+  @keyframes glow { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+  @keyframes fresh { from { background: rgba(57, 135, 229, .28); } to { background: rgba(255, 255, 255, .04); } }
+  @media (prefers-reduced-motion: reduce) {
+    .status.running .dot, .chip.live .dot { animation-duration: 2.4s; }
+    .agent.running::before { animation: none; opacity: .8; }
+  }
+  @media (max-width: 1200px) { .agents { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 900px) { .bottom { grid-template-columns: 1fr; } }
+  @media (max-width: 640px) {
+    .wrap { padding: 16px; }
+    .agents { grid-template-columns: 1fr; }
+    .controls, .controls input { width: 100%; max-width: none; }
+    .feed li { grid-template-columns: 60px 1fr; }
+    .feed .who { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top glass">
+    <div class="brand">
+      <div class="brand-mark">A</div>
+      <div>
+        <h1>에이전트 대시보드</h1>
+        <div class="sub">
+          <label for="folder">분석 폴더</label>
+          <select id="folder"></select>
+          <span class="chip" id="runChip"><span class="dot"></span><span id="runText">대기</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="controls">
+      <input type="text" id="idea" placeholder="아이디어 한 줄 · 비워 두면 예시 모델(D마트) 분석" autocomplete="off">
+      <button class="btn btn-run" id="runBtn" type="button">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>실행
+      </button>
+      <button class="btn btn-stop" id="stopBtn" type="button" disabled>
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3.5" y="3.5" width="9" height="9" rx="1.5"/></svg>중지
+      </button>
+    </div>
+  </header>
+
+  <div class="banner glass" id="banner"></div>
+
+  <div class="section-title">서브에이전트</div>
+  <section class="agents" id="agents"></section>
+
+  <section class="bottom">
+    <div class="panel glass">
+      <div class="panel-head">
+        <h2>시나리오별 월 영업손익</h2>
+        <span class="src" id="pnlSrc"></span>
+        <div class="right">
+          <div class="legend" id="legend"></div>
+          <button class="btn btn-ghost" id="tableBtn" type="button">표 보기</button>
+        </div>
+      </div>
+      <div id="chart"></div>
+      <div id="chartTable" hidden></div>
+    </div>
+    <div class="panel glass">
+      <div class="panel-head">
+        <h2>리뷰 지적사항</h2>
+        <span class="src" id="findCount"></span>
+      </div>
+      <div id="conclusion"></div>
+      <ul class="findings" id="findings"></ul>
+    </div>
+  </section>
+
+  <section class="panel glass">
+    <div class="panel-head"><h2>실행 이벤트</h2><span class="src">claude 출력과 훅 이벤트</span></div>
+    <ul class="feed" id="feed"></ul>
+  </section>
+</div>
+
+<script>
+const AGENTS = [
+  { id: "researcher", label: "Researcher", role: "시장조사 · 1~3단계", mark: "R" },
+  { id: "competitor-analyzer", label: "Competitor Analyzer", role: "경쟁 분석 · 8~9단계", mark: "C" },
+  { id: "model-simulator", label: "Model Simulator", role: "수익모델 계산 · 2~7단계", mark: "M" },
+  { id: "reviewer", label: "Reviewer", role: "검토·심사 · 10단계", mark: "V" },
+];
+const STATUS_LABEL = { idle: "대기", running: "작업 중", done: "완료", error: "오류", stopped: "중지됨" };
+const SCEN_ORDER = ["보수", "기준", "낙관"];
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const storage = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+};
+
+let folder = new URLSearchParams(location.search).get("folder") || storage.get("dash.folder") || ".";
+let state = null;
+let seenEntries = new Set();
+let firstLoad = true;
+let showTable = false;
+let serverOk = true;
+let lastChartKey = null;
+
+/* ---------- agent cards ---------- */
+$("agents").innerHTML = AGENTS.map((a) => `
+  <article class="agent glass" id="card-${a.id}">
+    <div class="agent-head">
+      <div class="avatar">${a.mark}</div>
+      <div><div class="agent-name">${a.label}</div><div class="agent-role">${a.role}</div></div>
+      <span class="chip status" id="st-${a.id}"><span class="dot"></span><span>대기</span></span>
+    </div>
+    <div class="activity" id="act-${a.id}">—</div>
+    <div class="meta"><span id="since-${a.id}"></span><span id="runs-${a.id}"></span></div>
+    <div class="log-title"><span>run_log</span><span id="cnt-${a.id}"></span></div>
+    <ul class="log" id="log-${a.id}"></ul>
+  </article>`).join("");
+
+function hhmm(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return isNaN(d) ? String(iso) : d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+}
+function fmtVal(v) {
+  if (typeof v !== "number") return esc(v);
+  if (Math.abs(v) >= 10000) return (v / 10000).toLocaleString("ko-KR", { maximumFractionDigits: 0 }).replace("-", "−") + "만";
+  return v.toLocaleString("ko-KR", { maximumFractionDigits: 2 }).replace("-", "−");
+}
+function statusTag(s) {
+  const cls = s === "완료" ? "ok" : s === "미흡" || s === "건너뜀" ? "warn" : s === "실패" ? "bad" : "";
+  return `<span class="tag ${cls}">${esc(s || "—")}</span>`;
+}
+function validationSummary(list) {
+  if (!Array.isArray(list) || !list.length) return "";
+  const c = { 통과: 0, 주의: 0, 실패: 0 };
+  list.forEach((v) => { if (v && v.result in c) c[v.result]++; });
+  return `<span class="tag ok">통과 ${c.통과}</span>` + (c.주의 ? `<span class="tag warn">주의 ${c.주의}</span>` : "") + (c.실패 ? `<span class="tag bad">실패 ${c.실패}</span>` : "");
+}
+
+function renderAgents() {
+  const entries = (state.log && state.log.entries) || [];
+  for (const a of AGENTS) {
+    const info = state.run.agents[a.id] || { status: "idle" };
+    const card = $("card-" + a.id);
+    card.classList.toggle("running", info.status === "running");
+    const st = $("st-" + a.id);
+    st.className = "chip status " + info.status;
+    st.lastElementChild.textContent = STATUS_LABEL[info.status] || info.status;
+    $("act-" + a.id).textContent = info.activity || (info.status === "running" ? "작업 중…" : "—");
+    $("act-" + a.id).title = info.activity || "";
+    $("since-" + a.id).textContent = info.since ? `${STATUS_LABEL[info.status] || ""} ${hhmm(info.since)}` : "";
+    $("runs-" + a.id).textContent = info.runs ? `이번 실행 호출 ${info.runs}회` : "";
+
+    const mine = entries.filter((e) => e.agent === a.id).slice().reverse();
+    $("cnt-" + a.id).textContent = mine.length ? `${mine.length}건` : "";
+    const ul = $("log-" + a.id);
+    const scroll = ul.scrollTop;
+    ul.innerHTML = mine.length ? mine.map((e) => {
+      const key = `${state.folder}#${e.id}`;
+      const fresh = !firstLoad && !seenEntries.has(key);
+      seenEntries.add(key);
+      const kr = (e.key_results || []).slice(0, 3).map((k) =>
+        `<li>${esc(k.name)}: <b>${fmtVal(k.value)}</b>${k["구분"] === "가정" ? " (가정)" : ""}</li>`).join("");
+      return `<li class="${fresh ? "fresh" : ""}">
+        <div class="row1"><span class="step">${e.step ?? "?"}단계</span><span>${esc(e.step_name || "")}</span>${statusTag(e.status)}<span class="time">${hhmm(e.finished_at || e.started_at)}</span></div>
+        <div class="row1">${validationSummary(e.validation)}${(e.needs_check || []).length ? `<span class="tag warn">확인필요 ${e.needs_check.length}</span>` : ""}</div>
+        ${kr ? `<ul class="kr">${kr}</ul>` : ""}
+      </li>`;
+    }).join("") : `<li class="empty">${state.log_error ? esc(state.log_error) : "아직 기록이 없습니다"}</li>`;
+    ul.scrollTop = scroll;
+  }
+}
+
+/* ---------- chart ---------- */
+function pnlRows() {
+  const rows = (state.pnl || []).filter((r) => typeof r.value === "number");
+  const plans = [...new Set(rows.map((r) => r.plan))];
+  const scens = [...new Set(rows.map((r) => r.scenario))].sort((a, b) => {
+    const ia = SCEN_ORDER.indexOf(a), ib = SCEN_ORDER.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+  });
+  return { rows, plans, scens };
+}
+function niceTicks(min, max, n = 5) {
+  const span = max - min || 1;
+  const step0 = span / n, mag = Math.pow(10, Math.floor(Math.log10(step0)));
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => span / s <= n) || 10 * mag;
+  const lo = Math.floor(min / step) * step, hi = Math.ceil(max / step) * step;
+  const out = [];
+  for (let v = lo; v <= hi + step / 2; v += step) out.push(Math.round(v));
+  return out;
+}
+function barPath(x, y0, y1, w, r) {
+  const up = y1 < y0, h = Math.abs(y1 - y0);
+  r = Math.min(r, h, w / 2);
+  if (h < 0.5) return "";
+  if (up) return `M${x},${y0}V${y1 + r}Q${x},${y1} ${x + r},${y1}H${x + w - r}Q${x + w},${y1} ${x + w},${y1 + r}V${y0}Z`;
+  return `M${x},${y0}V${y1 - r}Q${x},${y1} ${x + r},${y1}H${x + w - r}Q${x + w},${y1} ${x + w},${y1 - r}V${y0}Z`;
+}
+function renderChart() {
+  const { rows, plans, scens } = pnlRows();
+  const box = $("chart");
+  $("pnlSrc").textContent = state.pnl_source ? `출처: ${state.pnl_source}` : "";
+  $("legend").innerHTML = plans.map((p, i) => `<span><i class="swatch" style="background:var(--series-${i + 1})"></i>${esc(p)}</span>`).join("");
+  if (!rows.length) {
+    box.innerHTML = `<div class="empty" style="padding:60px 12px">손익 데이터가 없습니다. model-simulator가 5단계를 끝내면 표시됩니다.</div>`;
+    $("chartTable").innerHTML = "";
+    return;
+  }
+  const W = Math.max(box.clientWidth, 280), H = 300, m = { t: 16, r: 8, b: 34, l: 64 };
+  const vals = rows.map((r) => r.value);
+  const ticks = niceTicks(Math.min(0, ...vals), Math.max(0, ...vals));
+  const lo = ticks[0], hi = ticks[ticks.length - 1];
+  const y = (v) => m.t + (hi - v) / (hi - lo) * (H - m.t - m.b);
+  const gw = (W - m.l - m.r) / scens.length;
+  const bw = Math.min(44, (gw * 0.6 - 2 * (plans.length - 1)) / plans.length);
+  const groupW = bw * plans.length + 2 * (plans.length - 1);
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="시나리오별 방안별 월 영업손익 막대그래프">`;
+  for (const t of ticks) {
+    svg += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(t)}" y2="${y(t)}" stroke="${t === 0 ? "var(--baseline)" : "var(--grid)"}" stroke-width="1"/>`;
+    svg += `<text class="axis-label" x="${m.l - 8}" y="${y(t) + 4}" text-anchor="end">${fmtVal(t)}</text>`;
+  }
+  scens.forEach((s, si) => {
+    const gx = m.l + gw * si + (gw - groupW) / 2;
+    svg += `<text class="cat-label" x="${m.l + gw * si + gw / 2}" y="${H - 10}" text-anchor="middle">${esc(s)}</text>`;
+    plans.forEach((p, pi) => {
+      const r = rows.find((d) => d.plan === p && d.scenario === s);
+      if (!r) return;
+      const x = gx + pi * (bw + 2);
+      svg += `<path class="bar" data-i="${rows.indexOf(r)}" d="${barPath(x, y(0), y(r.value), bw, 4)}" fill="var(--series-${pi + 1})"/>`;
+      svg += `<rect class="hit" data-i="${rows.indexOf(r)}" x="${x - 1}" y="${m.t}" width="${bw + 2}" height="${H - m.t - m.b}" fill="transparent"/>`;
+    });
+  });
+  svg += `</svg><div class="tooltip" id="tip"></div>`;
+  box.innerHTML = svg;
+  const tip = $("tip");
+  box.querySelectorAll(".hit").forEach((el) => {
+    el.addEventListener("mousemove", (ev) => {
+      const r = rows[+el.dataset.i];
+      box.classList.add("hovering");
+      box.querySelectorAll(".bar").forEach((b) => b.classList.toggle("hot", b.dataset.i === el.dataset.i));
+      tip.innerHTML = `<div>${esc(r.plan)} · ${esc(r.scenario)}</div><div class="v">${(r.value / 10000).toLocaleString("ko-KR", { maximumFractionDigits: 0 }).replace("-", "−")}만 원 / 월</div>${r.cell ? `<div class="c">${esc(r.cell)}</div>` : ""}`;
+      const rect = box.getBoundingClientRect();
+      tip.style.display = "block";
+      const tx = Math.min(ev.clientX - rect.left + 12, rect.width - tip.offsetWidth - 4);
+      tip.style.left = Math.max(0, tx) + "px";
+      tip.style.top = (ev.clientY - rect.top - tip.offsetHeight - 10) + "px";
+    });
+    el.addEventListener("mouseleave", () => {
+      box.classList.remove("hovering");
+      tip.style.display = "none";
+    });
+  });
+  $("chartTable").innerHTML = `<table class="data"><thead><tr><th>시나리오</th>${plans.map((p) => `<th>${esc(p)}</th>`).join("")}</tr></thead><tbody>${
+    scens.map((s) => `<tr><td>${esc(s)}</td>${plans.map((p) => {
+      const r = rows.find((d) => d.plan === p && d.scenario === s);
+      return `<td>${r ? r.value.toLocaleString("ko-KR", { maximumFractionDigits: 0 }).replace("-", "−") + "원" : "—"}</td>`;
+    }).join("")}</tr>`).join("")}</tbody></table>`;
+}
+$("tableBtn").addEventListener("click", () => {
+  showTable = !showTable;
+  $("chartTable").hidden = !showTable;
+  $("chart").hidden = showTable;
+  $("tableBtn").textContent = showTable ? "그래프 보기" : "표 보기";
+  if (!showTable) renderChart();
+});
+window.addEventListener("resize", () => { if (state && !showTable) renderChart(); });
+
+/* ---------- findings ---------- */
+const SEV_ICON = {
+  high: '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1 15 14H1z"/><rect x="7.25" y="5.5" width="1.5" height="4.5" fill="#1b2030"/><rect x="7.25" y="11" width="1.5" height="1.5" fill="#1b2030"/></svg>',
+  mid: '<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7"/><rect x="7.25" y="4" width="1.5" height="5" fill="#1b2030"/><rect x="7.25" y="10.5" width="1.5" height="1.5" fill="#1b2030"/></svg>',
+  low: '<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7"/><rect x="7.25" y="7" width="1.5" height="5" fill="#1b2030"/><rect x="7.25" y="4" width="1.5" height="1.5" fill="#1b2030"/></svg>',
+};
+function sevKey(s) { s = String(s || ""); return /높|high/i.test(s) ? "high" : /중|mid|med/i.test(s) ? "mid" : "low"; }
+function renderFindings() {
+  const c = state.conclusion;
+  let html = "";
+  if (c) {
+    const verdict = c.verdict || c.결론 || (Array.isArray(c) ? (c.find((k) => /결론/.test(k.name || "")) || {}).value : null);
+    const cond = c.conditions || c.조건 || (Array.isArray(c) ? (c.find((k) => /조건/.test(k.name || "")) || {}).value : null);
+    if (verdict) html = `<div class="conclusion"><div class="label">심사 결론</div><div class="verdict">${esc(verdict)}</div>${cond ? `<div class="f-fix">${esc(Array.isArray(cond) ? cond.join(" · ") : cond)}</div>` : ""}</div>`;
+  }
+  $("conclusion").innerHTML = html;
+  const list = Array.isArray(state.findings) ? state.findings.slice() : [];
+  const rank = { high: 0, mid: 1, low: 2 };
+  list.sort((a, b) => rank[sevKey(a.severity)] - rank[sevKey(b.severity)]);
+  $("findCount").textContent = state.findings ? `${list.length}건` : "";
+  $("findings").innerHTML = list.length ? list.map((f) => {
+    const k = sevKey(f.severity);
+    return `<li><span class="sev ${k}">${SEV_ICON[k]}${esc(f.severity || "낮음")}</span>
+      <div class="f-title">${esc(f.issue || f.summary || f.rule || "")}</div>
+      <div class="f-loc">${esc(f.location || "")}${f.rule && (f.issue || f.summary) ? " · " + esc(f.rule) : ""}</div>
+      <div class="f-fix">${f.fix ? "→ " + esc(f.fix) : ""}</div></li>`;
+  }).join("") : `<li class="empty" style="display:block">${state.findings ? "지적사항이 없습니다" : "reviewer 기록이 아직 없습니다"}</li>`;
+}
+
+/* ---------- feed & header ---------- */
+function renderFeed() {
+  const items = state.run.feed.slice().reverse();
+  $("feed").innerHTML = items.length ? items.map((f) =>
+    `<li><span class="t">${hhmm(f.t)}</span><span class="who">${esc(f.who)}</span><span class="x" title="${esc(f.text)}">${esc(f.text)}</span></li>`).join("")
+    : `<li class="empty" style="display:block">실행하면 이벤트가 표시됩니다</li>`;
+}
+function renderHeader() {
+  const r = state.run;
+  const sel = $("folder");
+  const opts = state.folders.map((f) => `<option value="${esc(f.value)}">${esc(f.label)}</option>`).join("");
+  if (sel.dataset.opts !== opts) { sel.innerHTML = opts; sel.dataset.opts = opts; }
+  sel.value = folder;
+  $("runBtn").disabled = r.running;
+  $("stopBtn").disabled = !r.running;
+  $("idea").disabled = r.running;
+  const chip = $("runChip");
+  chip.classList.toggle("live", r.running);
+  if (r.running) {
+    const sec = Math.max(0, Math.floor((Date.now() - new Date(r.started_at)) / 1000));
+    $("runText").textContent = `실행 중 ${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")} · ${r.folder}`;
+  } else if (r.ended_at) {
+    $("runText").textContent = (r.stopping ? "중지됨 " : "종료 ") + hhmm(r.ended_at);
+  } else {
+    $("runText").textContent = "대기";
+  }
+}
+
+function showBanner(html) {
+  $("banner").innerHTML = html;
+  $("banner").style.display = html ? "block" : "none";
+}
+
+async function refresh() {
+  try {
+    const res = await fetch(`/api/state?folder=${encodeURIComponent(folder)}`, { cache: "no-store" });
+    if (!res.ok) throw new Error(res.status);
+    state = await res.json();
+    if (!serverOk) showBanner("");
+    serverOk = true;
+    renderHeader();
+    renderAgents();
+    const chartKey = JSON.stringify([state.folder, state.pnl, state.pnl_source]);
+    if (chartKey !== lastChartKey) { lastChartKey = chartKey; renderChart(); }
+    renderFindings();
+    renderFeed();
+    firstLoad = false;
+  } catch (e) {
+    serverOk = false;
+    showBanner(`대시보드 서버에 연결할 수 없습니다. 터미널에서 <code>python -X utf8 dashboard_server.py</code>를 실행한 뒤 <code>http://127.0.0.1:8765</code>로 여세요.`);
+  }
+}
+
+async function post(path, body) {
+  const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json", "X-Dashboard": "1" }, body: JSON.stringify(body || {}) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || res.status);
+  return data;
+}
+
+$("runBtn").addEventListener("click", async () => {
+  const idea = $("idea").value.trim();  // 비어 있으면 서버가 예시 모델을 분석한다
+  $("runBtn").disabled = true;
+  try {
+    const data = await post("/api/run", { idea });
+    folder = data.folder;
+    storage.set("dash.folder", folder);
+    showBanner("");
+  } catch (e) {
+    showBanner("실행하지 못했습니다: " + esc(e.message));
+  }
+  refresh();
+});
+$("stopBtn").addEventListener("click", async () => {
+  $("stopBtn").disabled = true;
+  try { await post("/api/stop"); } catch (e) { showBanner("중지하지 못했습니다: " + esc(e.message)); }
+  refresh();
+});
+$("idea").addEventListener("keydown", (e) => { if (e.key === "Enter") $("runBtn").click(); });
+$("folder").addEventListener("change", (e) => {
+  folder = e.target.value;
+  storage.set("dash.folder", folder);
+  firstLoad = true;
+  refresh();
+});
+
+refresh();
+setInterval(refresh, 1000);
+</script>
+</body>
+</html>
