@@ -1,21 +1,34 @@
 """경영정보 MCP 서버 — 도구 3개를 Streamable HTTP로 공개한다.
 
+공식 MCP Python SDK 2.x 기준 (MCPServer — 1.x의 FastMCP를 대체).
+
 실행: python mcp_server/server.py  →  http://localhost:9000/mcp
-확인: npx @modelcontextprotocol/inspector
+확인: npx @modelcontextprotocol/inspector  →  Transport: Streamable HTTP, URL: http://localhost:9000/mcp
 """
 
 import json
+import logging
 
-from mcp.server.mcpserver import MCPServer
+from mcp.server import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 
 from adapters import exchange, sales, weather
 
-mcp = MCPServer("business-info")
+# SDK 2.x 문서: MCP 레벨 로깅(ctx.info 등)은 deprecated → 서버 로그는 파이썬 logging으로 남긴다
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+log = logging.getLogger("business-info")
+
+mcp = MCPServer(
+    "business-info",
+    instructions=(
+        "회사 경영정보 도구 모음. 날씨(get_weather) · 환율(get_exchange) · 국가별 매출(get_sales)을 실제 데이터로 조회한다. "
+        "매출을 원화로 환산할 때는 get_sales로 금액 · 통화를 받고 get_exchange로 받은 환율을 곱한다."
+    ),
+)
 
 
 def _call(tool: str, fetch, **args) -> str:
-    print(f"[MCP CALL] {tool} {json.dumps(args, ensure_ascii=False)}", flush=True)
+    log.info("[MCP CALL] %s %s", tool, json.dumps(args, ensure_ascii=False))
     try:
         return json.dumps(fetch(**args), ensure_ascii=False)
     except (ValueError, RuntimeError) as e:
@@ -55,4 +68,5 @@ def get_sales(country: str | None = None) -> str:
 
 
 if __name__ == "__main__":
-    mcp.run(transport="streamable-http", port=9000)
+    # host 기본값 127.0.0.1(로컬 전용, DNS rebinding 보호 기본 적용), 경로 기본값 /mcp — 명시해 둔다
+    mcp.run(transport="streamable-http", host="127.0.0.1", port=9000, streamable_http_path="/mcp")
