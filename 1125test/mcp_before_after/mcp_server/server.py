@@ -13,6 +13,7 @@ from mcp.server import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 
 from adapters import exchange, sales, weather
+from adapters import offices  # 추가 도구: 해외지사 조회
 
 # SDK 2.x 문서: MCP 레벨 로깅(ctx.info 등)은 deprecated → 서버 로그는 파이썬 logging으로 남긴다
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -65,6 +66,17 @@ def get_sales(country: str | None = None) -> str:
         country: 한글 국가명. 예: "미국", "일본", "독일"
     """
     return _call("get_sales", sales.fetch, country=country)
+
+
+@mcp.tool()
+def get_office(country: str | None = None) -> str:
+    """해외지사 정보(국가 · 도시 · 담당자 · 연락처)를 조회한다. country를 비우면 전체 지사를 돌려준다.
+    지사가 있는 국가: 미국, 일본, 독일.
+
+    Args:
+        country: 한글 국가명. 예: "미국", "일본", "독일"
+    """
+    return _call("get_office", offices.fetch, country=country)
 
 
 if __name__ == "__main__":
