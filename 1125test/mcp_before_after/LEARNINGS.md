@@ -1,5 +1,44 @@
 # 배운 점 — MCP 전후 비교 실습 (2026-11-25)
 
+## 0. MCP란 정확히 무엇인가
+
+**MCP(Model Context Protocol)는 AI 앱이 외부 도구 · 데이터에 연결하는 방법을 정한 공개 표준 규약**이다. Anthropic이 2024년 11월에 공개했고, 지금은 여러 AI 회사와 도구가 함께 쓴다.
+
+흔한 비유는 **"AI용 USB-C"**. 기기(AI 앱)와 주변기기(외부 서비스)가 제각각 전용 케이블을 만들던 것을, 규격 하나로 꽂으면 되게 만든 것이다.
+
+**등장인물 3개**
+
+| 역할 | 하는 일 | 오늘 실습에서 |
+|---|---|---|
+| 호스트 (Host) | 사용자가 쓰는 AI 앱. LLM을 품고 있다 | 경영정보비서 Streamlit 앱, Claude Code |
+| 클라이언트 (Client) | 호스트 안에서 MCP 서버와 대화하는 연결 담당 | `after/service_a.py`의 `ClientSession` |
+| 서버 (Server) | 외부 기능을 표준 형식으로 공개 | `mcp_server/server.py` (포트 9000) |
+
+**서버가 공개할 수 있는 것**
+- **Tools (도구)** — AI가 실행하는 함수. 예: `get_weather`, `get_exchange`, `get_sales` ← 오늘 쓴 것
+- **Resources (리소스)** — AI가 읽어 가는 데이터 (파일 · 문서 등)
+- **Prompts (프롬프트)** — 미리 만들어 둔 프롬프트 템플릿
+
+**대화 흐름 (오늘 After 버전 기준)**
+
+```
+1. 클라이언트 → 서버   initialize            "연결하자"  (서버 이름 · instructions를 받음)
+2. 클라이언트 → 서버   list_tools            "무슨 도구 있어?"  (이름 · 설명 · 입력 스키마를 받음)
+3. 클라이언트 → LLM    도구 목록 + 사용자 질문 전달
+4. LLM → 클라이언트    "get_exchange(base=USD) 불러 줘"
+5. 클라이언트 → 서버   call_tool             서버가 실제 API를 호출하고 결과를 돌려줌
+6. 클라이언트 → LLM    결과 전달 → LLM이 최종 답을 씀
+```
+
+메시지는 JSON-RPC 형식이고, 오고 가는 통로(transport)는 두 가지다.
+- **stdio** — 서버를 같은 컴퓨터의 하위 프로세스로 띄워 표준입출력으로 대화
+- **Streamable HTTP** — 서버를 HTTP 주소로 띄워 네트워크로 대화 ← 오늘 쓴 것 (`http://localhost:9000/mcp`)
+
+**헷갈리기 쉬운 점**
+- **MCP ≠ function calling.** function calling(tool use)은 "LLM이 어떤 함수를 부를지 고르는" 모델 기능이다. MCP는 "그 함수를 어디서 어떻게 가져와 실행하는지"의 규약이다. 오늘 After도 Gemini의 function calling은 그대로 쓰고, 도구를 MCP 서버에서 받아 왔을 뿐이다.
+- **LLM은 MCP 서버에 직접 접속하지 않는다.** LLM은 "이 도구 불러 줘"라는 요청만 만들고, 실제 호출은 클라이언트가 한다.
+- **MCP는 특정 회사 전용이 아니다.** 오늘도 Anthropic이 아닌 Gemini 모델로 MCP 서버를 썼다.
+
 ## 1. MCP가 해결하는 문제
 
 - MCP를 안 쓰면 서비스 하나가 **API 주소 · 키 · 응답 파싱 · 스키마 · 도구 분기**를 전부 떠안는다. (Before 파일에 `# [불편]` 13곳)
