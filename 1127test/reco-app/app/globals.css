@@ -1,0 +1,27 @@
+:root { --bg:#fbfaf7; --fg:#1f2421; --muted:#6b716d; --line:#e4e1da; --accent:#2f6b4f; --warn:#a14a24; }
+@media (prefers-color-scheme: dark) { :root { --bg:#151816; --fg:#e8ebe8; --muted:#9aa19c; --line:#2c312e; --accent:#7cc4a0; --warn:#f0a07a; } }
+* { box-sizing: border-box; }
+body { margin:0; font-family: system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; background:var(--bg); color:var(--fg); line-height:1.55; }
+main { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
+.top { display:flex; justify-content:space-between; align-items:center; max-width:960px; margin:0 auto; padding:16px; border-bottom:1px solid var(--line); }
+.top nav { display:flex; gap:16px; }
+a { color: var(--accent); text-decoration: none; }
+.brand { font-weight: 700; color: var(--fg); }
+h1 { font-size: 1.5rem; margin: 0 0 4px; } h2 { font-size: 1.15rem; margin: 32px 0 12px; }
+.muted { color: var(--muted); font-size: .9rem; }
+.grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.card { border:1px solid var(--line); border-radius:10px; padding:12px 14px; background: color-mix(in srgb, var(--bg) 92%, var(--fg)); }
+.card .name { font-weight:600; } .card .meta { color:var(--muted); font-size:.85rem; }
+.soldout { opacity:.5; }
+fieldset { border:1px solid var(--line); border-radius:10px; margin:0 0 12px; padding:12px 14px; }
+legend { font-weight:600; padding:0 4px; }
+label.opt { display:inline-flex; align-items:center; gap:6px; margin:4px 14px 4px 0; }
+textarea, input[type=email], input[type=number] { width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:transparent; color:inherit; font:inherit; }
+input[type=number] { width: 72px; }
+button { font:inherit; padding:8px 16px; border-radius:8px; border:1px solid var(--accent); background:var(--accent); color:var(--bg); cursor:pointer; }
+button:disabled { opacity:.5; cursor:default; }
+button.ghost { background:transparent; color:var(--accent); }
+.reason { margin:8px 0; } .tag { font-size:.75rem; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:1px 8px; }
+.msg { margin-top:8px; font-size:.9rem; } .msg.err { color: var(--warn); }
+table { border-collapse: collapse; width:100%; } th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); }
+footer { text-align:center; color:var(--muted); font-size:.8rem; padding:24px; }

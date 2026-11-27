@@ -1,0 +1,9 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+# 비밀값 — 절대 커밋 금지 (.env.example만 커밋)
+.env
+.env*.local
+.vercel
